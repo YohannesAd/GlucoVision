@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StatusBar, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/ui/Button';
 import { RootStackParamList } from '../../types';
@@ -23,7 +23,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Implement actual login logic here
       // For now, simulate login and navigate to dashboard
@@ -48,11 +48,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      <ScrollView 
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
+
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View className="flex-1 justify-center px-6 py-8">
           {/* Header */}
@@ -118,7 +117,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           {/* Sign Up Link */}
           <View className="flex-row justify-center items-center">
             <Text className="text-textSecondary">
-              Don't have an account? 
+              Don't have an account?
             </Text>
             <TouchableOpacity onPress={handleSignUp} className="ml-1">
               <Text className="text-primary font-semibold">
@@ -127,7 +126,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

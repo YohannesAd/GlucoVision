@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/ui/Button';
 import { RootStackParamList } from '../../types';
@@ -37,7 +37,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Implement actual sign up logic here
       // For now, simulate sign up and navigate to onboarding
@@ -58,13 +58,12 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
-      <ScrollView 
-        className="flex-1" 
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
+
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View className="flex-1 justify-center px-6 py-8">
+        <View className="flex-1 px-6 py-40">
           {/* Header */}
           <View className="items-center mb-8">
             <Text className="text-3xl font-bold text-darkBlue mb-2">
@@ -76,11 +75,11 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
           </View>
 
           {/* Sign Up Form */}
-          <View className="mb-6">
+          <View className="flex-1 justify-center">
             {/* Name Inputs */}
-            <View className="flex-row mb-4 space-x-3">
-              <View className="flex-1">
-                <Text className="text-textPrimary font-medium mb-2">First Name</Text>
+            <View className="flex-row mb-4">
+              <View className="flex-1 mr-2">
+                <Text className="text-textPrimary font-medium mb-2 text-sm">First Name</Text>
                 <TextInput
                   className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-textPrimary"
                   placeholder="First name"
@@ -90,9 +89,9 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
                   autoCapitalize="words"
                 />
               </View>
-              
-              <View className="flex-1">
-                <Text className="text-textPrimary font-medium mb-2">Last Name</Text>
+
+              <View className="flex-1 ml-2">
+                <Text className="text-textPrimary font-medium mb-2 text-sm">Last Name</Text>
                 <TextInput
                   className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-textPrimary"
                   placeholder="Last name"
@@ -106,7 +105,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
 
             {/* Email Input */}
             <View className="mb-4">
-              <Text className="text-textPrimary font-medium mb-2">Email</Text>
+              <Text className="text-textPrimary font-medium mb-2 text-sm">Email</Text>
               <TextInput
                 className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-textPrimary"
                 placeholder="Enter your email"
@@ -121,7 +120,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
 
             {/* Password Input */}
             <View className="mb-4">
-              <Text className="text-textPrimary font-medium mb-2">Password</Text>
+              <Text className="text-textPrimary font-medium mb-2 text-sm">Password</Text>
               <TextInput
                 className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-textPrimary"
                 placeholder="Create a password"
@@ -135,8 +134,8 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             </View>
 
             {/* Confirm Password Input */}
-            <View className="mb-6">
-              <Text className="text-textPrimary font-medium mb-2">Confirm Password</Text>
+            <View className="mb-4">
+              <Text className="text-textPrimary font-medium mb-2 text-sm">Confirm Password</Text>
               <TextInput
                 className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-textPrimary"
                 placeholder="Confirm your password"
@@ -161,9 +160,9 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
           </View>
 
           {/* Login Link */}
-          <View className="flex-row justify-center items-center">
+          <View className="flex-row justify-center items-center mt-6">
             <Text className="text-textSecondary">
-              Already have an account? 
+              Already have an account?
             </Text>
             <TouchableOpacity onPress={handleLogin} className="ml-1">
               <Text className="text-primary font-semibold">
@@ -172,7 +171,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
