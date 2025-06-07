@@ -1,6 +1,17 @@
 import React from 'react';
 import { TouchableOpacity, Text, ViewStyle, TextStyle } from 'react-native';
 
+/**
+ * Button - Reusable button component with multiple variants and sizes
+ *
+ * Features:
+ * - Multiple variants: primary, secondary, outline
+ * - Multiple sizes: small, medium, large
+ * - Disabled state handling
+ * - Consistent styling across the app
+ * - Custom style overrides support
+ */
+
 interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -20,17 +31,18 @@ export default function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  // Generate button container classes based on variant and size
   const getButtonClasses = () => {
     const baseClasses = 'rounded-xl items-center justify-center';
 
-    // Size classes
+    // Size-based padding
     const sizeClasses = {
       small: 'py-2 px-4',
       medium: 'py-3 px-6',
       large: 'py-4 px-8',
     };
 
-    // Variant classes
+    // Variant-based colors and borders
     const variantClasses = {
       primary: disabled ? 'bg-gray-300' : 'bg-primary',
       secondary: disabled ? 'bg-gray-200' : 'bg-secondary',
@@ -40,15 +52,18 @@ export default function Button({
     return `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]}`;
   };
 
+  // Generate text classes based on variant and size
   const getTextClasses = () => {
     const baseClasses = 'font-semibold text-center';
 
+    // Size-based font sizes
     const sizeClasses = {
       small: 'text-sm',
       medium: 'text-base',
       large: 'text-lg',
     };
 
+    // Variant-based text colors
     const variantClasses = {
       primary: disabled ? 'text-gray-500' : 'text-white',
       secondary: disabled ? 'text-gray-500' : 'text-white',

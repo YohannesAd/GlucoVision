@@ -7,7 +7,9 @@ import { RootStackParamList } from '../types';
 import LandingScreen from '../screens/Landing/LandingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
-import OnboardingPersonalInfoScreen from '../screens/onboarding/OnboardingPersonalInfoScreen';
+import OnboardingPersonalInfo1Screen from '../screens/onboarding/OnboardingPersonalInfoScreen';
+import OnboardingPersonalInfo2Screen from '../screens/onboarding/OnboardingPersonalInfo2Screen';
+import OnboardingPersonalInfo3Screen from '../screens/onboarding/OnboardingPersonalInfo3Screen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,8 +41,19 @@ export default function AppNavigation() {
           component={SignUpScreen}
         />
         <Stack.Screen
-          name="OnboardingPersonalInfo"
-          component={OnboardingPersonalInfoScreen}
+          name="OnboardingPersonalInfo1"
+          component={OnboardingPersonalInfo1Screen}
+          options={{
+            gestureEnabled: false, // Disable swipe back to auth
+          }}
+        />
+        <Stack.Screen
+          name="OnboardingPersonalInfo2"
+          component={OnboardingPersonalInfo2Screen}
+        />
+        <Stack.Screen
+          name="OnboardingPersonalInfo3"
+          component={OnboardingPersonalInfo3Screen}
         />
         <Stack.Screen
           name="Dashboard"

@@ -1,6 +1,12 @@
 import "./global.css";
-import AppNavigation from './src/navigation/AppNavigation';
+import React from 'react';
+import { AuthProvider } from './src/context/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
-  return <AppNavigation />;
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
+  );
 }

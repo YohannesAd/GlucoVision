@@ -3,9 +3,9 @@ export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
   SignUp: undefined;
-  OnboardingPersonalInfo: undefined;
-  OnboardingMedicalInfo: undefined;
-  OnboardingPreferences: undefined;
+  OnboardingPersonalInfo1: undefined;
+  OnboardingPersonalInfo2: undefined;
+  OnboardingPersonalInfo3: undefined;
   Dashboard: undefined;
   AddLog: undefined;
   ViewLogs: undefined;
@@ -23,6 +23,7 @@ export interface User {
   dateOfBirth?: string;
   diabetesType?: 'type1' | 'type2' | 'gestational' | 'other';
   diagnosisDate?: string;
+  hasCompletedOnboarding: boolean;
   createdAt: string;
   updatedAt: string;
 }
