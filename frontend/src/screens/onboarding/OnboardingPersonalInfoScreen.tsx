@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { ScreenContainer, FormContainer, ScreenHeader, FormInput, Button, ProgressIndicator } from '../../components/ui';
+import { Button } from '../../components/ui';
+import { OnboardingLayout, FieldPicker, OptionGrid, DatePicker } from '../../components/onboarding';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /**
  * OnboardingPersonalInfo1Screen - First step of onboarding
  *
- * Collects basic personal information:
- * - Full name
- * - Date of birth
- * - Gender
- * - Phone number (optional)
+ * Collects basic personal and diabetes information:
+ * - Date of birth (required for age-based risk factors)
+ * - Gender (Male, Female, Prefer not to say)
+ * - Diabetes type (Type 1, Type 2, Pre-diabetic, Gestational)
+ * - Diagnosed since (year picker for trend depth personalization)
  *
  * This information helps personalize the app experience and
  * provides context for health recommendations.
@@ -25,95 +26,101 @@ interface OnboardingPersonalInfo1ScreenProps {
 
 export default function OnboardingPersonalInfo1Screen({ navigation }: OnboardingPersonalInfo1ScreenProps) {
   // Form state
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState({ day: '', month: '', year: '' });
   const [gender, setGender] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [diabetesType, setDiabetesType] = useState('');
+  const [diagnosedYear, setDiagnosedYear] = useState('');
+
+  // Options data
+  const genderOptions = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+    { value: 'Prefer not to say', label: 'Prefer not to say' },
+  ];
+
+  const diabetesTypeOptions = [
+    { value: 'Type 1', label: 'Type 1' },
+    { value: 'Type 2', label: 'Type 2' },
+    { value: 'Pre-diabetic', label: 'Pre-diabetic' },
+    { value: 'Gestational', label: 'Gestational' },
+  ];
+
+  const generateDiagnosedYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear; year >= 1950; year--) {
+      years.push({ value: year.toString(), label: year.toString() });
+    }
+    return years;
+  };
+
+  // Handle date selection
+  const handleDateSelect = (day: string, month: string, year: string) => {
+    setDateOfBirth({ day, month, year });
+  };
 
   // Handle form submission and navigation to next step
   const handleNext = () => {
     // Basic validation
-    if (!firstName || !lastName || !dateOfBirth || !gender) {
+    if (!dateOfBirth.day || !dateOfBirth.month || !dateOfBirth.year || !gender || !diabetesType || !diagnosedYear) {
       Alert.alert('Required Fields', 'Please fill in all required fields to continue.');
       return;
     }
 
     // TODO: Save data to context or storage
-    // const personalInfo1 = { firstName, lastName, dateOfBirth, gender, phoneNumber };
+    // const personalInfo1 = { dateOfBirth, gender, diabetesType, diagnosedYear };
 
     // Navigate to next onboarding step
     navigation.navigate('OnboardingPersonalInfo2');
   };
 
   return (
-    <ScreenContainer>
-      <FormContainer>
-        {/* Progress Indicator */}
-        <ProgressIndicator currentStep={1} totalSteps={3} />
-
-        {/* Screen Header */}
-        <ScreenHeader
-          title="Personal Information"
-          subtitle="Help us get to know you better"
-          containerClassName="items-center mb-6"
+    <OnboardingLayout
+      currentStep={1}
+      totalSteps={3}
+      title="Personal Information"
+      subtitle="Tell us about yourself"
+    >
+      {/* Personal Information Form */}
+      <View className="mb-6">
+        {/* Date of Birth */}
+        <DatePicker
+          label="Date of Birth *"
+          subtitle="Required for age-based risk factors"
+          value={dateOfBirth}
+          onSelect={handleDateSelect}
         />
 
-        {/* Personal Information Form */}
-        <View className="mb-6">
-          {/* Name Inputs Row */}
-          <View className="flex-row mb-4">
-            <View className="flex-1 mr-2">
-              <FormInput
-                label="First Name *"
-                placeholder="Enter first name"
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                containerClassName="mb-0"
-              />
-            </View>
+        {/* Gender Selection */}
+        <OptionGrid
+          label="Gender *"
+          options={genderOptions}
+          selectedValue={gender}
+          onSelect={setGender}
+          columns={3}
+        />
 
-            <View className="flex-1 ml-2">
-              <FormInput
-                label="Last Name *"
-                placeholder="Enter last name"
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-                containerClassName="mb-0"
-              />
-            </View>
-          </View>
+        {/* Diabetes Type Selection */}
+        <OptionGrid
+          label="Diabetes Type *"
+          options={diabetesTypeOptions}
+          selectedValue={diabetesType}
+          onSelect={setDiabetesType}
+          columns={2}
+        />
 
-          {/* Date of Birth Input */}
-          <FormInput
-            label="Date of Birth *"
-            placeholder="MM/DD/YYYY"
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-            keyboardType="numeric"
-          />
+        {/* Diagnosed Since Year */}
+        <FieldPicker
+          label="Diagnosed Since *"
+          subtitle="Helps personalize trend depth"
+          placeholder="Select Year"
+          value={diagnosedYear}
+          options={generateDiagnosedYearOptions()}
+          onSelect={setDiagnosedYear}
+        />
 
-          {/* Gender Input */}
-          <FormInput
-            label="Gender *"
-            placeholder="Select gender"
-            value={gender}
-            onChangeText={setGender}
-          />
-
-          {/* Phone Number Input (Optional) */}
-          <FormInput
-            label="Phone Number"
-            placeholder="(Optional) Enter phone number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            containerClassName="mb-6"
-          />
-
-          {/* Continue Button */}
+        {/* Continue Button */}
+        <View className="mt-4">
           <Button
             title="Continue"
             onPress={handleNext}
@@ -122,12 +129,12 @@ export default function OnboardingPersonalInfo1Screen({ navigation }: Onboarding
             style={{ width: '100%' }}
           />
         </View>
+      </View>
 
-        {/* Step Information */}
-        <Text className="text-center text-textSecondary text-sm">
-          Step 1 of 3 - Personal Information
-        </Text>
-      </FormContainer>
-    </ScreenContainer>
+      {/* Step Information */}
+      <Text className="text-center text-textSecondary text-sm">
+        Step 1 of 3 - Personal Information
+      </Text>
+    </OnboardingLayout>
   );
 }
