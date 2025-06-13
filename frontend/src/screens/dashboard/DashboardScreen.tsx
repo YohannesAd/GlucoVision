@@ -47,23 +47,19 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   // Navigation handlers
   const handleMenuNavigation = (screen: string) => {
     setIsMenuVisible(false);
-    // TODO: Navigate to respective screens when they are created
+    // Navigate to respective screens
     switch (screen) {
       case 'account':
-        // navigation.navigate('Profile');
-        console.log('Navigate to Account/Profile');
+        navigation.navigate('Account');
         break;
       case 'addLog':
-        // navigation.navigate('AddLog');
-        console.log('Navigate to Add Log');
+        navigation.navigate('AddLog');
         break;
       case 'viewLogs':
-        // navigation.navigate('ViewLogs');
-        console.log('Navigate to View Logs');
+        navigation.navigate('ViewLogs');
         break;
       case 'aiTrends':
-        // navigation.navigate('AITrends');
-        console.log('Navigate to AI Trends');
+        navigation.navigate('AITrends');
         break;
       default:
         break;
@@ -72,13 +68,11 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
   // Action handlers for components
   const handleAddLog = () => {
-    console.log('Navigate to Add Log');
-    // navigation.navigate('AddLog');
+    navigation.navigate('AddLog');
   };
 
   const handleViewLogs = () => {
-    console.log('Navigate to View Logs');
-    // navigation.navigate('ViewLogs');
+    navigation.navigate('ViewLogs');
   };
 
   const handleGeneratePDF = () => {
@@ -87,13 +81,11 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   };
 
   const handleAskAI = () => {
-    console.log('Navigate to AI Chat');
-    // navigation.navigate('AIChat');
+    navigation.navigate('AITrends');
   };
 
   const handleViewAIDetails = () => {
-    console.log('Navigate to AI Details');
-    // navigation.navigate('AIDetails');
+    navigation.navigate('AITrends');
   };
 
 

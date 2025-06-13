@@ -22,14 +22,24 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post<AuthResponse>(
+      const response = await apiClient.post(
         ENDPOINTS.AUTH.LOGIN,
         credentials
       );
 
-      if (response.success && response.data) {
-        await this.storeAuthData(response.data);
-        return response.data;
+      // FastAPI returns data directly, not wrapped in success/data
+      if (response.data && response.data.tokens) {
+        const authData: AuthResponse = {
+          user: response.data.user,
+          tokens: {
+            accessToken: response.data.tokens.access_token,
+            refreshToken: response.data.tokens.refresh_token,
+            expiresIn: response.data.tokens.expires_in,
+          }
+        };
+
+        await this.storeAuthData(authData);
+        return authData;
       }
 
       throw new Error('Login failed');
@@ -43,14 +53,33 @@ class AuthService {
    */
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post<AuthResponse>(
+      // Transform frontend data to match FastAPI schema
+      const registerData = {
+        email: userData.email,
+        password: userData.password,
+        confirm_password: userData.password, // FastAPI expects confirm_password
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+      };
+
+      const response = await apiClient.post(
         ENDPOINTS.AUTH.REGISTER,
-        userData
+        registerData
       );
 
-      if (response.success && response.data) {
-        await this.storeAuthData(response.data);
-        return response.data;
+      // FastAPI returns data directly
+      if (response.data && response.data.tokens) {
+        const authData: AuthResponse = {
+          user: response.data.user,
+          tokens: {
+            accessToken: response.data.tokens.access_token,
+            refreshToken: response.data.tokens.refresh_token,
+            expiresIn: response.data.tokens.expires_in,
+          }
+        };
+
+        await this.storeAuthData(authData);
+        return authData;
       }
 
       throw new Error('Registration failed');
@@ -80,19 +109,29 @@ class AuthService {
   async refreshToken(): Promise<string | null> {
     try {
       const refreshToken = await storageService.getSecureItem(this.REFRESH_TOKEN_KEY);
-      
+
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
 
-      const response = await apiClient.post<AuthResponse>(
+      const response = await apiClient.post(
         ENDPOINTS.AUTH.REFRESH,
-        { refreshToken }
+        { refresh_token: refreshToken } // FastAPI expects refresh_token
       );
 
-      if (response.success && response.data) {
-        await this.storeAuthData(response.data);
-        return response.data.tokens.accessToken;
+      // FastAPI returns tokens directly
+      if (response.data && response.data.access_token) {
+        const authData: AuthResponse = {
+          user: await this.getCurrentUser() || {} as any, // Keep existing user data
+          tokens: {
+            accessToken: response.data.access_token,
+            refreshToken: response.data.refresh_token,
+            expiresIn: response.data.expires_in,
+          }
+        };
+
+        await this.storeAuthData(authData);
+        return authData.tokens.accessToken;
       }
 
       throw new Error('Token refresh failed');

@@ -5,14 +5,14 @@
 
 // Environment-based configuration
 const getApiBaseUrl = (): string => {
-  // TODO: Replace with your actual backend URL
+  // FastAPI backend URL
   const isDevelopment = __DEV__;
-  
+
   if (isDevelopment) {
-    return 'http://localhost:3000/api/v1'; // Local development
+    return 'http://localhost:8000'; // FastAPI development server
   }
-  
-  return 'https://api.glucovision.com/v1'; // Production
+
+  return 'https://your-glucovision-api.railway.app'; // Production (Railway)
 };
 
 export const API_CONFIG = {
@@ -22,47 +22,56 @@ export const API_CONFIG = {
   RETRY_DELAY: 1000, // 1 second
 } as const;
 
-// API Endpoints
+// API Endpoints (FastAPI Backend)
 export const ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    REFRESH: '/auth/refresh',
-    LOGOUT: '/auth/logout',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
-    VERIFY_EMAIL: '/auth/verify-email',
+    LOGIN: '/api/v1/auth/login',
+    REGISTER: '/api/v1/auth/register',
+    REFRESH: '/api/v1/auth/refresh',
+    LOGOUT: '/api/v1/auth/logout',
+    CHANGE_PASSWORD: '/api/v1/auth/change-password',
+    ME: '/api/v1/auth/me',
+    VERIFY_TOKEN: '/api/v1/auth/verify-token',
   },
-  
+
   // User Management
   USER: {
-    PROFILE: '/user/profile',
-    UPDATE_PROFILE: '/user/profile',
-    CHANGE_PASSWORD: '/user/change-password',
-    DELETE_ACCOUNT: '/user/delete',
+    PROFILE: '/api/v1/users/profile',
+    UPDATE_PROFILE: '/api/v1/users/profile',
+    ONBOARDING_STATUS: '/api/v1/users/onboarding/status',
+    ONBOARDING_STEP1: '/api/v1/users/onboarding/step1',
+    ONBOARDING_STEP2: '/api/v1/users/onboarding/step2',
+    ONBOARDING_STEP3: '/api/v1/users/onboarding/step3',
+    DELETE_ACCOUNT: '/api/v1/users/account',
   },
-  
+
   // Glucose Data
   GLUCOSE: {
-    READINGS: '/glucose/readings',
-    READING: (id: string) => `/glucose/readings/${id}`,
-    STATISTICS: '/glucose/statistics',
-    TRENDS: '/glucose/trends',
-    EXPORT: '/glucose/export',
+    LOGS: '/api/v1/glucose/logs',
+    LOG: (id: string) => `/api/v1/glucose/logs/${id}`,
+    STATS: '/api/v1/glucose/stats',
   },
-  
-  // Health Data
+
+  // AI Insights
+  AI: {
+    INSIGHTS: '/api/v1/ai/insights',
+    TRENDS: '/api/v1/ai/trends',
+    RECOMMENDATIONS: '/api/v1/ai/recommendations',
+    RISK_ASSESSMENT: '/api/v1/ai/risk-assessment',
+    PATTERNS: '/api/v1/ai/patterns',
+  },
+
+  // Reports
+  REPORTS: {
+    GLUCOSE_SUMMARY: '/api/v1/reports/glucose-summary',
+    MEDICAL_REPORT: '/api/v1/reports/medical-report',
+    EXPORT_DATA: '/api/v1/reports/export-data',
+  },
+
+  // Health Check
   HEALTH: {
-    METRICS: '/health/metrics',
-    GOALS: '/health/goals',
-    REMINDERS: '/health/reminders',
-  },
-  
-  // Analytics
-  ANALYTICS: {
-    INSIGHTS: '/analytics/insights',
-    REPORTS: '/analytics/reports',
-    PREDICTIONS: '/analytics/predictions',
+    CHECK: '/health',
+    ROOT: '/',
   },
 } as const;

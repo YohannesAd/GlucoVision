@@ -5,8 +5,11 @@ import { RootStackParamList } from '../types';
 
 // Main App Screens
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
+import AccountScreen from '../screens/account/AccountScreen';
+import AddLogScreen from '../screens/addlog/AddLogScreen';
+import ViewLogsScreen from '../screens/viewlogs/ViewLogsScreen';
+import AITrendsScreen from '../screens/aitrends/AITrendsScreen';
 // TODO: Add these screens when created
-// import AddLogScreen from '../screens/logs/AddLogScreen';
 // import ViewLogsScreen from '../screens/logs/ViewLogsScreen';
 // import AITrendsScreen from '../screens/analytics/AITrendsScreen';
 // import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -104,8 +107,15 @@ export default function MainNavigator() {
       />
       
       {/* Modal Screens */}
-      {/* TODO: Add modal screens */}
-      {/*
+      <MainStack.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
+
       <MainStack.Screen
         name="AddLog"
         component={AddLogScreen}
@@ -114,6 +124,27 @@ export default function MainNavigator() {
           animation: 'slide_from_bottom',
         }}
       />
+
+      <MainStack.Screen
+        name="ViewLogs"
+        component={ViewLogsScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
+
+      <MainStack.Screen
+        name="AITrends"
+        component={AITrendsScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
+
+      {/* TODO: Add other modal screens */}
+      {/*
       <MainStack.Screen
         name="Reports"
         component={ReportsScreen}

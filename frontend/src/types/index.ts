@@ -11,6 +11,7 @@ export type RootStackParamList = {
   ViewLogs: undefined;
   AITrends: undefined;
   Profile: undefined;
+  Account: undefined;
   Reports: undefined;
 };
 
@@ -21,11 +22,45 @@ export interface User {
   firstName: string;
   lastName: string;
   dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
   diabetesType?: 'type1' | 'type2' | 'gestational' | 'other';
   diagnosisDate?: string;
+  profilePicture?: string;
+  isEmailVerified?: boolean;
   hasCompletedOnboarding: boolean;
+  preferences?: UserPreferences;
+  medicalInfo?: UserMedicalInfo;
   createdAt: string;
   updatedAt: string;
+}
+
+// User Preferences Types
+export interface UserPreferences {
+  glucoseUnit: 'mg/dL' | 'mmol/L';
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    reminders: boolean;
+    insights: boolean;
+    emergencyAlerts: boolean;
+  };
+  privacy: {
+    shareData: boolean;
+    analytics: boolean;
+  };
+  language: string;
+}
+
+// User Medical Information Types
+export interface UserMedicalInfo {
+  diabetesType: 'type1' | 'type2' | 'gestational' | 'other';
+  diagnosisDate: string;
+  currentMedications: string[];
+  takesInsulin: boolean;
+  insulinType?: string;
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  mealsPerDay: number;
+  sleepDuration: number;
+  allergies?: string[];
 }
 
 // Glucose Log Types
@@ -91,4 +126,49 @@ export interface AuthState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+}
+
+// AI & Analytics Types
+export interface AIInsight {
+  id: string;
+  type: 'recommendation' | 'warning' | 'trend' | 'alert' | 'prediction';
+  title: string;
+  message: string;
+  confidence: number;
+  actionable: boolean;
+  recommendation?: string;
+  severity: 'positive' | 'warning' | 'critical' | 'info';
+  createdAt: string;
+  factors?: string[];
+}
+
+export interface TrendData {
+  period: 'week' | 'month' | 'quarter';
+  direction: 'improving' | 'stable' | 'declining';
+  percentage: number;
+  timeInRange: number;
+  averageGlucose: number;
+  readingsCount: number;
+  patterns: string[];
+}
+
+export interface PredictionData {
+  horizon: 'hour' | 'day' | 'week';
+  predictedValue: number;
+  confidence: number;
+  factors: {
+    name: string;
+    impact: 'positive' | 'negative' | 'neutral';
+    weight: number;
+  }[];
+  recommendations: string[];
+}
+
+export interface ChatMessage {
+  id: string;
+  type: 'user' | 'ai';
+  message: string;
+  timestamp: string;
+  confidence?: number;
+  relatedInsights?: string[];
 }
