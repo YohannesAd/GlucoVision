@@ -36,8 +36,8 @@ from app.api.v1.glucose import router as glucose_router
 from app.api.v1.ai_insights import router as ai_router
 from app.api.v1.reports import router as reports_router
 
-# Import models to ensure they're registered
-from app.models import user, glucose_log
+# Import database models to ensure they're registered
+from app.DatabaseModels import user, glucose_log, password_reset
 
 
 @asynccontextmanager

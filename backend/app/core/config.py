@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     
     # Trusted Hosts
     ALLOWED_HOSTS: List[str] = Field(
-        default=["localhost", "127.0.0.1", "*.railway.app"],
+        default=["localhost", "127.0.0.1", "10.0.0.226", "*.railway.app"],
         env="ALLOWED_HOSTS"
     )
     
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = Field(default="uploads", env="UPLOAD_DIR")
     
     # AI/ML Settings
-    AI_MODEL_PATH: str = Field(default="models", env="AI_MODEL_PATH")
+    AI_MODEL_PATH: str = Field(default="MlModels", env="AI_MODEL_PATH")
     ENABLE_AI_INSIGHTS: bool = Field(default=True, env="ENABLE_AI_INSIGHTS")
     MIN_LOGS_FOR_AI: int = Field(default=4, env="MIN_LOGS_FOR_AI")
     

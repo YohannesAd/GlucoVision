@@ -6,6 +6,10 @@ import { RootStackParamList } from '../types';
 import LandingScreen from '../screens/Landing/LandingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import VerifyResetCodeScreen from '../screens/auth/VerifyResetCodeScreen';
+import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
+import ResetPasswordSuccessScreen from '../screens/auth/ResetPasswordSuccessScreen';
 
 /**
  * AuthNavigator - Navigation stack for unauthenticated users
@@ -47,6 +51,22 @@ export default function AuthNavigator() {
       <AuthStack.Screen
         name="SignUp"
         component={SignUpScreen}
+      />
+      <AuthStack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+      />
+      <AuthStack.Screen
+        name="VerifyResetCode"
+        component={VerifyResetCodeScreen}
+      />
+      <AuthStack.Screen
+        name="ResetPassword"
+        component={ResetPasswordScreen}
+      />
+      <AuthStack.Screen
+        name="ResetPasswordSuccess"
+        component={ResetPasswordSuccessScreen}
       />
     </AuthStack.Navigator>
   );

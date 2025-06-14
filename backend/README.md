@@ -18,7 +18,7 @@ backend/
 │   │   ├── config.py     # Configuration management
 │   │   ├── database.py   # Database connection & setup
 │   │   └── security.py   # Authentication & security
-│   ├── models/           # SQLAlchemy database models
+│   ├── DatabaseModels/   # SQLAlchemy database models
 │   │   ├── user.py       # User model
 │   │   └── glucose_log.py # Glucose log model
 │   ├── schemas/          # Pydantic schemas (API contracts)
@@ -28,7 +28,7 @@ backend/
 │   ├── services/         # Business logic services
 │   │   └── ai_service.py # AI/ML analysis service
 │   └── main.py          # FastAPI application entry point
-├── models/              # AI/ML model storage (auto-created)
+├── MlModels/            # AI/ML model storage (auto-created)
 ├── uploads/             # File upload storage (auto-created)
 ├── .env.example         # Environment configuration template
 ├── requirements.txt     # Python dependencies
@@ -39,6 +39,7 @@ backend/
 ## 🚀 Quick Start
 
 ### 1. Environment Setup
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -48,12 +49,14 @@ nano .env
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 # Install Python dependencies
 pip install -r requirements.txt
 ```
 
 ### 3. Run Development Server
+
 ```bash
 # Start development server
 python run.py
@@ -63,6 +66,7 @@ python run.py --host 0.0.0.0 --port 8000
 ```
 
 ### 4. Access API Documentation
+
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/health
@@ -72,6 +76,7 @@ python run.py --host 0.0.0.0 --port 8000
 The application uses environment-based configuration through `.env` files:
 
 ### Key Settings
+
 - `ENVIRONMENT`: development/staging/production
 - `DATABASE_URL`: PostgreSQL connection string
 - `USE_SQLITE`: Use SQLite for development (true/false)
@@ -79,6 +84,7 @@ The application uses environment-based configuration through `.env` files:
 - `CORS_ORIGINS`: Allowed frontend origins
 
 ### Database Options
+
 - **Development**: SQLite (default, no setup required)
 - **Production**: PostgreSQL (recommended)
 
@@ -100,21 +106,25 @@ The application uses environment-based configuration through `.env` files:
 ## 📊 API Endpoints
 
 ### Authentication
+
 - `POST /api/v1/auth/register` - User registration
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/refresh` - Token refresh
 
 ### Glucose Management
+
 - `GET /api/v1/glucose/logs` - Get glucose logs
 - `POST /api/v1/glucose/logs` - Add glucose reading
 - `DELETE /api/v1/glucose/logs/{id}` - Delete reading
 
 ### AI Insights
+
 - `GET /api/v1/ai/insights` - Get AI analysis
 - `GET /api/v1/ai/trends` - Get trend analysis
 - `GET /api/v1/ai/recommendations` - Get recommendations
 
 ### Reports
+
 - `GET /api/v1/reports/pdf` - Generate PDF report
 - `GET /api/v1/reports/export` - Export data
 
@@ -131,6 +141,7 @@ pytest
 ## 🚀 Production Deployment
 
 ### Environment Variables
+
 ```bash
 ENVIRONMENT=production
 DEBUG=false
@@ -139,6 +150,7 @@ DATABASE_URL=postgresql://user:pass@host:5432/glucovision
 ```
 
 ### Run Production Server
+
 ```bash
 python run.py --prod --workers 4
 ```
@@ -146,6 +158,7 @@ python run.py --prod --workers 4
 ## 📝 Development Notes
 
 ### Code Quality Standards
+
 - **Type Hints**: All functions use Python type hints
 - **Documentation**: Comprehensive docstrings
 - **Error Handling**: Proper exception management
@@ -153,6 +166,7 @@ python run.py --prod --workers 4
 - **Testing**: Unit tests for all endpoints
 
 ### Database Migrations
+
 ```bash
 # Generate migration
 alembic revision --autogenerate -m "description"

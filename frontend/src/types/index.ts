@@ -3,6 +3,13 @@ export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
   SignUp: undefined;
+
+  // Password Reset Flow
+  ForgotPassword: undefined;
+  VerifyResetCode: { email: string };
+  ResetPassword: { token: string; email: string };
+  ResetPasswordSuccess: { email: string };
+
   OnboardingPersonalInfo1: undefined;
   OnboardingPersonalInfo2: undefined;
   OnboardingPersonalInfo3: undefined;

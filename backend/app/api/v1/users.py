@@ -20,8 +20,8 @@ import logging
 
 from app.core.database import get_async_session
 from app.core.security import get_current_user
-from app.models.user import User
-from app.models.glucose_log import GlucoseLog, ReadingTypeEnum
+from app.DatabaseModels.user import User
+from app.DatabaseModels.glucose_log import GlucoseLog, ReadingTypeEnum
 from app.schemas.user import (
     UserProfileUpdate,
     OnboardingStep1,

@@ -10,14 +10,16 @@ Models:
 - GlucoseLog: Glucose reading storage and management
 """
 
-from app.models.user import User, GenderEnum, DiabetesTypeEnum
-from app.models.glucose_log import GlucoseLog, ReadingTypeEnum, MealTypeEnum
+from app.DatabaseModels.user import User, GenderEnum, DiabetesTypeEnum
+from app.DatabaseModels.glucose_log import GlucoseLog, ReadingTypeEnum, MealTypeEnum
+from app.DatabaseModels.password_reset import PasswordResetToken
 
 __all__ = [
     "User",
-    "GenderEnum", 
+    "GenderEnum",
     "DiabetesTypeEnum",
     "GlucoseLog",
     "ReadingTypeEnum",
     "MealTypeEnum",
+    "PasswordResetToken",
 ]

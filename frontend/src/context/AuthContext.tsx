@@ -94,32 +94,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: 'AUTH_START' });
 
     try {
-      // TODO: Implement actual API call
-      // const response = await authService.login(credentials);
+      // Use real API service to login
+      const { authService } = await import('../services/auth/authService');
+      const response = await authService.login(credentials);
 
-      // Simulate API call for now
-      const mockUser: User = {
-        id: '1',
-        email: credentials.email,
-        firstName: 'John',
-        lastName: 'Doe',
-        hasCompletedOnboarding: true, // Existing users have completed onboarding
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      // Convert API response to context format
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.first_name,
+        lastName: response.user.last_name,
+        hasCompletedOnboarding: response.user.has_completed_onboarding || false,
+        createdAt: response.user.created_at,
+        updatedAt: response.user.updated_at,
       };
-
-      const mockToken = 'mock-jwt-token';
 
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user: mockUser, token: mockToken }
+        payload: { user, token: response.tokens.accessToken }
       });
 
-      // TODO: Store token securely
-      // await SecureStore.setItemAsync('authToken', mockToken);
-
-    } catch (error) {
-      dispatch({ type: 'AUTH_FAILURE', payload: 'Login failed' });
+    } catch (error: any) {
+      const errorMessage = error.message || 'Login failed';
+      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
       throw error;
     }
   };
@@ -129,32 +126,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: 'AUTH_START' });
 
     try {
-      // TODO: Implement actual API call
-      // const response = await authService.signUp(credentials);
-
-      // Create new user without completing onboarding yet
-      const newUser: User = {
-        id: Date.now().toString(), // Temporary ID generation
+      // Use real API service to register
+      const { authService } = await import('../services/auth/authService');
+      const registerData = {
         email: credentials.email,
+        password: credentials.password,
         firstName: credentials.firstName,
         lastName: credentials.lastName,
-        hasCompletedOnboarding: false, // New users need to complete onboarding
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        dateOfBirth: '', // Will be collected during onboarding
+        agreeToTerms: true,
       };
 
-      const mockToken = 'mock-jwt-token-new-user';
+      const response = await authService.register(registerData);
+
+      // Convert API response to context format
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.first_name,
+        lastName: response.user.last_name,
+        hasCompletedOnboarding: response.user.has_completed_onboarding || false,
+        createdAt: response.user.created_at,
+        updatedAt: response.user.updated_at,
+      };
 
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user: newUser, token: mockToken }
+        payload: { user, token: response.tokens.accessToken }
       });
 
-      // TODO: Store token securely
-      // await SecureStore.setItemAsync('authToken', mockToken);
-
-    } catch (error) {
-      dispatch({ type: 'AUTH_FAILURE', payload: 'Sign up failed' });
+    } catch (error: any) {
+      const errorMessage = error.message || 'Sign up failed';
+      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
       throw error;
     }
   };
@@ -162,32 +165,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout function
   const logout = async () => {
     try {
-      // TODO: Clear stored token
-      // await SecureStore.deleteItemAsync('authToken');
+      // Use real API service to logout
+      const { authService } = await import('../services/auth/authService');
+      await authService.logout();
 
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if API call fails, clear local state
+      dispatch({ type: 'LOGOUT' });
     }
   };
 
   // Complete onboarding for current user
   const completeOnboarding = async () => {
     try {
-      if (state.user) {
+      if (state.user && state.token) {
+        // Call backend to get updated user info after onboarding completion
+        const response = await fetch(`${API_BASE_URL}/users/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get updated user information');
+        }
+
+        const data = await response.json();
         const updatedUser: User = {
-          ...state.user,
-          hasCompletedOnboarding: true,
-          updatedAt: new Date().toISOString(),
+          id: data.user.id,
+          email: data.user.email,
+          firstName: data.user.first_name,
+          lastName: data.user.last_name,
+          hasCompletedOnboarding: data.user.has_completed_onboarding,
+          createdAt: data.user.created_at,
+          updatedAt: data.user.updated_at,
         };
 
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user: updatedUser, token: state.token || '' }
+          payload: { user: updatedUser, token: state.token }
         });
-
-        // TODO: Update user in backend
-        // await authService.updateUser(updatedUser);
       }
     } catch (error) {
       console.error('Complete onboarding error:', error);

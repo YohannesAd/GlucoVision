@@ -5,6 +5,7 @@ import { OnboardingLayout, FieldPicker, GlucoseLogCard } from '../../components/
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../context/AuthContext';
+import { onboardingService, OnboardingStep3Data, GlucoseReading } from '../../services';
 
 /**
  * OnboardingPersonalInfo3Screen - Third and final step of onboarding
@@ -26,7 +27,7 @@ interface OnboardingPersonalInfo3ScreenProps {
 
 export default function OnboardingPersonalInfo3Screen({ navigation }: OnboardingPersonalInfo3ScreenProps) {
   // Auth context
-  const { completeOnboarding } = useAuth();
+  const { completeOnboarding, state } = useAuth();
 
   // Form state for glucose logs
   const [log1Value, setLog1Value] = useState('');
@@ -103,15 +104,28 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
     }
 
     try {
-      // TODO: Save all onboarding data to context or storage
-      // const glucoseLogs = [
-      //   { value: log1Value, timeOfDay: log1Time },
-      //   { value: log2Value, timeOfDay: log2Time },
-      //   { value: log3Value, timeOfDay: log3Time },
-      //   { value: log4Value, timeOfDay: log4Time },
-      // ];
+      // Prepare glucose readings data
+      const glucoseReadings: GlucoseReading[] = [
+        { value: parseInt(log1Value), timeOfDay: log1Time as any },
+        { value: parseInt(log2Value), timeOfDay: log2Time as any },
+        { value: parseInt(log3Value), timeOfDay: log3Time as any },
+        { value: parseInt(log4Value), timeOfDay: log4Time as any },
+      ];
 
-      // Complete onboarding in AuthContext
+      // Prepare step 3 data
+      const step3Data: OnboardingStep3Data = {
+        glucoseReadings,
+        preferredUnit: 'mg/dL',
+        targetRangeMin: 80,
+        targetRangeMax: 180,
+      };
+
+      // Submit step 3 data to backend
+      if (state.token) {
+        await onboardingService.submitStep3(step3Data, state.token);
+      }
+
+      // Update auth context with completed onboarding status
       await completeOnboarding();
 
       // Show completion message
@@ -129,6 +143,7 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
         ]
       );
     } catch (error) {
+      console.error('Onboarding completion error:', error);
       Alert.alert('Error', 'Failed to complete setup. Please try again.');
     }
   };

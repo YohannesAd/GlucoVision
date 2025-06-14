@@ -92,14 +92,28 @@ class UserRegister(BaseModel):
         }
 
 
-class PasswordReset(BaseModel):
+class PasswordResetRequest(BaseModel):
     """Password reset request schema"""
     email: EmailStr = Field(..., description="User email address")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "user@example.com"
+            }
+        }
+
+
+class PasswordResetVerify(BaseModel):
+    """Password reset verification schema"""
+    email: EmailStr = Field(..., description="User email address")
+    verification_code: str = Field(..., min_length=6, max_length=6, description="6-digit verification code")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "verification_code": "123456"
             }
         }
 
@@ -109,28 +123,37 @@ class PasswordResetConfirm(BaseModel):
     token: str = Field(..., description="Password reset token")
     new_password: str = Field(..., min_length=8, description="New password")
     confirm_password: str = Field(..., description="Password confirmation")
-    
+
     @validator("confirm_password")
     def passwords_match(cls, v, values):
         """Validate that passwords match"""
         if "new_password" in values and v != values["new_password"]:
             raise ValueError("Passwords do not match")
         return v
-    
-    @validator("new_password")
-    def validate_password_strength(cls, v):
-        """Validate password strength"""
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        
-        has_upper = any(c.isupper() for c in v)
-        has_lower = any(c.islower() for c in v)
-        has_digit = any(c.isdigit() for c in v)
-        
-        if not (has_upper and has_lower and has_digit):
-            raise ValueError("Password must contain uppercase, lowercase, and numeric characters")
-        
-        return v
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "token": "abc123def456",
+                "new_password": "newpassword123",
+                "confirm_password": "newpassword123"
+            }
+        }
+
+
+class PasswordResetResponse(BaseModel):
+    """Password reset response schema"""
+    message: str
+    email: Optional[str] = None
+    token: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Verification code sent to your email",
+                "email": "user@example.com"
+            }
+        }
 
 
 class PasswordChange(BaseModel):

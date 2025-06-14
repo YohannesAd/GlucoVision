@@ -67,9 +67,10 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
       setIsLoading(false);
       // Navigation will be handled automatically by RootNavigator
       // based on the user's onboarding status
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      Alert.alert('Error', 'Sign up failed. Please try again.');
+      const errorMessage = error.message || 'Sign up failed. Please try again.';
+      Alert.alert('Sign Up Error', errorMessage);
     }
   };
 
@@ -132,6 +133,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            showPasswordToggle
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -143,6 +145,7 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
+            showPasswordToggle
             autoCapitalize="none"
             autoCorrect={false}
             containerClassName="mb-6"

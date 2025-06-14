@@ -6,3 +6,4 @@ export * from './storage';
 export * from './analytics';
 export * from './notifications';
 export * from './validation';
+export * from './onboarding';

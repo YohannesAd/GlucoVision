@@ -48,9 +48,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       setIsLoading(false);
       // Navigation will be handled automatically by RootNavigator
       // based on the user's authentication and onboarding status
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      Alert.alert('Error', 'Login failed. Please try again.');
+      const errorMessage = error.message || 'Login failed. Please try again.';
+      Alert.alert('Login Error', errorMessage);
     }
   };
 
@@ -59,9 +60,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     navigation.navigate('SignUp');
   };
 
-  // Handle forgot password (placeholder)
+  // Handle forgot password
   const handleForgotPassword = () => {
-    Alert.alert('Forgot Password', 'Password reset functionality will be implemented soon.');
+    navigation.navigate('ForgotPassword');
   };
 
   return (
@@ -93,6 +94,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            showPasswordToggle
             autoCapitalize="none"
             autoCorrect={false}
             containerClassName="mb-6"

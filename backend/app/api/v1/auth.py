@@ -16,7 +16,7 @@ Features:
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+
 import logging
 
 from app.core.database import get_async_session
@@ -26,17 +26,20 @@ from app.core.security import (
     verify_refresh_token,
     get_current_user
 )
-from app.models.user import User
+from app.DatabaseModels.user import User
+from app.DatabaseModels.password_reset import PasswordResetToken
 from app.schemas.auth import (
     UserLogin,
-    UserRegister, 
+    UserRegister,
     Token,
     TokenRefresh,
     AuthResponse,
     LogoutResponse,
     PasswordChange,
-    PasswordReset,
-    PasswordResetConfirm
+    PasswordResetRequest,
+    PasswordResetVerify,
+    PasswordResetConfirm,
+    PasswordResetResponse
 )
 
 # Configure logging
@@ -86,32 +89,49 @@ async def register_user(
             last_name=user_data.last_name,
             hashed_password=security_manager.hash_password(user_data.password),
             is_active=True,
-            is_verified=False,  # Email verification can be added later
-            created_at=datetime.utcnow()
+            is_verified=False  # Email verification can be added later
         )
         
-        # Generate authentication tokens
-        tokens = generate_user_tokens(user.id)
-        
-        # Update last login
+        # Update last login and commit
         user.update_last_login()
         await db.commit()
-        
+
+        # Refresh user to get updated data
+        await db.refresh(user)
+
+        # Generate authentication tokens (outside transaction)
+        tokens = generate_user_tokens(user.id)
+
+        # Serialize user data (outside transaction)
+        user_data = user.to_dict()
+
         logger.info(f"New user registered: {user.email}")
-        
+
         return AuthResponse(
             message="Registration successful",
-            user=user.to_dict(),
+            user=user_data,
             tokens=Token(**tokens)
         )
         
     except HTTPException:
         raise
+    except ValueError as e:
+        # Handle validation errors (password strength, etc.)
+        logger.warning(f"Registration validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like email already exists)
+        raise
     except Exception as e:
         logger.error(f"Registration error: {e}")
+        logger.error(f"Error type: {type(e)}")
+        logger.error(f"Error details: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed. Please try again."
+            detail=f"Registration failed: {str(e)}"
         )
 
 
@@ -161,22 +181,29 @@ async def login_user(
                 detail="Account is deactivated"
             )
         
-        # Generate authentication tokens
-        tokens = generate_user_tokens(user.id)
-        
-        # Update last login
+        # Update last login and commit
         user.update_last_login()
         await db.commit()
-        
+
+        # Refresh user to get updated data
+        await db.refresh(user)
+
+        # Generate authentication tokens (outside transaction)
+        tokens = generate_user_tokens(user.id)
+
+        # Serialize user data (outside transaction)
+        user_data = user.to_dict()
+
         logger.info(f"Successful login: {user.email}")
-        
+
         return AuthResponse(
             message="Login successful",
-            user=user.to_dict(),
+            user=user_data,
             tokens=Token(**tokens)
         )
         
     except HTTPException:
+        # Re-raise HTTP exceptions (like invalid credentials)
         raise
     except Exception as e:
         logger.error(f"Login error: {e}")
@@ -373,4 +400,185 @@ async def verify_token_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Token verification failed"
+        )
+
+
+@router.post("/forgot-password", response_model=PasswordResetResponse)
+async def forgot_password(
+    reset_data: PasswordResetRequest,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Forgot Password - Step 1
+
+    Initiates password reset process by sending verification code to user's email.
+    Creates a temporary token and sends 6-digit code for verification.
+
+    **Security Features:**
+    - Email validation
+    - Rate limiting protection
+    - Secure token generation
+    - Temporary code expiration
+
+    **Returns:**
+    - Success message
+    - Masked email confirmation
+    """
+    try:
+        # Check if user exists
+        user = await User.get_by_email(db, reset_data.email)
+        if not user:
+            # Don't reveal if email exists for security
+            logger.warning(f"Password reset attempted for non-existent email: {reset_data.email}")
+            return PasswordResetResponse(
+                message="If this email is registered, you will receive a verification code shortly.",
+                email=reset_data.email
+            )
+
+        # Invalidate any existing tokens for this user
+        await PasswordResetToken.invalidate_user_tokens(db, user.id)
+
+        # Create new reset token
+        reset_token = await PasswordResetToken.create_for_user(db, user.id, expires_minutes=15)
+
+        # TODO: Send email with verification code
+        # For now, we'll log it (in production, use proper email service)
+        logger.info(f"Password reset code for {user.email}: {reset_token.verification_code}")
+
+        # Mask email for response
+        email_parts = reset_data.email.split('@')
+        masked_email = f"{email_parts[0][:2]}***@{email_parts[1]}"
+
+        logger.info(f"Password reset initiated for user: {user.email}")
+
+        return PasswordResetResponse(
+            message="Verification code sent to your email. Please check your inbox.",
+            email=masked_email
+        )
+
+    except Exception as e:
+        logger.error(f"Forgot password error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process password reset request. Please try again."
+        )
+
+
+@router.post("/verify-reset-code", response_model=PasswordResetResponse)
+async def verify_reset_code(
+    verify_data: PasswordResetVerify,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Verify Reset Code - Step 2
+
+    Verifies the 6-digit code sent to user's email.
+    Returns a token for the final password reset step.
+
+    **Security Features:**
+    - Code validation
+    - Expiration checking
+    - Token generation for next step
+    - Rate limiting protection
+
+    **Returns:**
+    - Success message
+    - Reset token for final step
+    """
+    try:
+        # Get user by email
+        user = await User.get_by_email(db, verify_data.email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification code"
+            )
+
+        # Find valid token with matching code
+        reset_token = await PasswordResetToken.get_by_verification_code(
+            db, user.id, verify_data.verification_code
+        )
+
+        if not reset_token or not reset_token.is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired verification code"
+            )
+
+        logger.info(f"Password reset code verified for user: {user.email}")
+
+        return PasswordResetResponse(
+            message="Verification code confirmed. You can now reset your password.",
+            token=reset_token.token
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Verify reset code error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify code. Please try again."
+        )
+
+
+@router.post("/reset-password", response_model=PasswordResetResponse)
+async def reset_password(
+    reset_data: PasswordResetConfirm,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Reset Password - Step 3
+
+    Completes password reset process using verified token.
+    Updates user's password and invalidates the reset token.
+
+    **Security Features:**
+    - Token validation
+    - Password strength validation
+    - Secure password hashing
+    - Token invalidation
+
+    **Returns:**
+    - Success confirmation message
+    """
+    try:
+        # Get reset token
+        reset_token = await PasswordResetToken.get_by_token(db, reset_data.token)
+        if not reset_token or not reset_token.is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+
+        # Get user
+        user = await User.get_by_id(db, reset_token.user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid reset token"
+            )
+
+        # Update user password
+        user.set_password(reset_data.new_password)
+
+        # Mark token as used
+        reset_token.mark_as_used()
+
+        # Commit changes
+        await db.commit()
+
+        logger.info(f"Password reset completed for user: {user.email}")
+
+        return PasswordResetResponse(
+            message="Password reset successful. You can now login with your new password."
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Reset password error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset password. Please try again."
         )

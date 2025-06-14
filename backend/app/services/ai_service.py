@@ -22,8 +22,8 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 
-from app.models.glucose_log import GlucoseLog
-from app.models.user import User
+from app.DatabaseModels.glucose_log import GlucoseLog
+from app.DatabaseModels.user import User
 
 # Configure logging
 logger = logging.getLogger(__name__)

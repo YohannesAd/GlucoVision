@@ -151,9 +151,9 @@ async def create_tables():
     """
     try:
         async with async_engine.begin() as conn:
-            # Import all models to ensure they're registered
-            from app.models import user, glucose_log
-            
+            # Import all database models to ensure they're registered
+            from app.DatabaseModels import user, glucose_log, password_reset
+
             # Create all tables
             await conn.run_sync(Base.metadata.create_all)
             logger.info("✅ Database tables created successfully")

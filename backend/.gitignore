@@ -56,8 +56,8 @@ uploads/*
 !uploads/.gitkeep
 
 # AI Model Files (too large for git)
-models/*
-!models/.gitkeep
+MlModels/*
+!MlModels/.gitkeep
 *.pkl
 *.joblib
 *.h5

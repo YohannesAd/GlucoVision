@@ -237,17 +237,59 @@ class AuthService {
    * Handle authentication errors
    */
   private handleAuthError(error: any): Error {
-    if (error.code === 'INVALID_CREDENTIALS') {
-      return new Error('Invalid email or password');
-    } else if (error.code === 'EMAIL_ALREADY_EXISTS') {
-      return new Error('An account with this email already exists');
-    } else if (error.code === 'WEAK_PASSWORD') {
-      return new Error('Password is too weak');
-    } else if (error.code === 'NETWORK_ERROR') {
-      return new Error('Network error - please check your connection');
+    console.log('Auth error details:', error);
+
+    // Handle Axios errors
+    if (error.response) {
+      const status = error.response.status;
+      const detail = error.response.data?.detail || error.response.data?.message;
+
+      switch (status) {
+        case 400:
+          // Bad request - validation errors
+          if (detail) {
+            if (detail.includes('Password must contain')) {
+              return new Error('Password must contain uppercase, lowercase, and numeric characters');
+            } else if (detail.includes('Password must be at least')) {
+              return new Error('Password must be at least 8 characters long');
+            } else if (detail.includes('Passwords do not match')) {
+              return new Error('Passwords do not match');
+            } else if (detail.includes('Email already registered')) {
+              return new Error('An account with this email already exists');
+            }
+            return new Error(detail);
+          }
+          return new Error('Invalid input. Please check your information.');
+
+        case 401:
+          return new Error('Invalid email or password');
+
+        case 403:
+          return new Error('Account is deactivated');
+
+        case 404:
+          return new Error('Service not found. Please try again later.');
+
+        case 422:
+          // Validation error
+          if (error.response.data?.detail?.[0]?.msg) {
+            return new Error(error.response.data.detail[0].msg);
+          }
+          return new Error('Invalid input format');
+
+        case 500:
+          return new Error('Server error. Please try again later.');
+
+        default:
+          return new Error(detail || 'Authentication failed');
+      }
+    } else if (error.request) {
+      // Network error
+      return new Error('Network error. Please check your internet connection.');
+    } else {
+      // Other errors
+      return new Error(error.message || 'Authentication failed');
     }
-    
-    return new Error(error.message || 'Authentication failed');
   }
 }
 
