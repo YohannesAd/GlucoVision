@@ -101,10 +101,10 @@ SessionLocal = sessionmaker(
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Async Database Session Dependency
-    
+
     Provides async database sessions for FastAPI endpoints.
     Handles session lifecycle and automatic cleanup.
-    
+
     Yields:
         AsyncSession: Database session for async operations
     """
@@ -114,7 +114,12 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
             await session.commit()
         except Exception as e:
             await session.rollback()
-            logger.error(f"Database session error: {e}")
+
+            # Only log database-related errors, not HTTP exceptions
+            from fastapi import HTTPException
+            if not isinstance(e, HTTPException):
+                logger.error(f"Database session error: {e}")
+
             raise
         finally:
             await session.close()

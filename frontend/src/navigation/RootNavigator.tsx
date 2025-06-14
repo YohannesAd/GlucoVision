@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 // Import Navigators
@@ -27,12 +28,16 @@ import MainNavigator from './MainNavigator';
 
 export default function RootNavigator() {
   const { state } = useAuth();
-  const { isAuthenticated, user, isLoading } = state;
+  const { isAuthenticated, user, isLoading, error } = state;
 
   // Show loading screen while checking auth state
   if (isLoading) {
-    // TODO: Create a proper loading screen component
-    return null; // For now, return null during loading
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
   }
 
   // Determine which navigator to show
@@ -57,3 +62,18 @@ export default function RootNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+    fontFamily: 'Inter-Medium',
+  },
+});

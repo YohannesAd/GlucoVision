@@ -50,29 +50,11 @@ export const loggingResponseInterceptor = (response: AxiosResponse): AxiosRespon
 };
 
 // Response interceptor for handling authentication errors
+// NOTE: This interceptor is currently disabled to prevent conflicts with apiClient.ts
+// The main token refresh logic is handled in apiClient.ts
 export const authResponseInterceptor = async (error: any): Promise<any> => {
-  const originalRequest = error.config;
-  
-  if (error.response?.status === 401 && !originalRequest._retry) {
-    originalRequest._retry = true;
-    
-    try {
-      // Try to refresh the token
-      const newToken = await authService.refreshToken();
-      
-      if (newToken && originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return originalRequest;
-      }
-    } catch (refreshError) {
-      // Refresh failed, redirect to login
-      console.error('Token refresh failed:', refreshError);
-      await authService.logout();
-      // TODO: Navigate to login screen
-      // NavigationService.navigate('Login');
-    }
-  }
-  
+  // Skip token refresh logic to prevent infinite loops
+  // This is handled in the main apiClient.ts interceptor
   return Promise.reject(error);
 };
 

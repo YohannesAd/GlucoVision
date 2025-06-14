@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ScreenContainer, FormContainer, ScreenHeader, FormInput, Button, NavigationLink } from '../../components/ui';
 import { RootStackParamList } from '../../types';
@@ -24,18 +24,41 @@ interface LoginScreenProps {
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   // Auth context
-  const { login } = useAuth();
+  const { login, clearError, state } = useAuth();
 
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  // Clear any previous errors when component mounts or when user starts typing
+  useEffect(() => {
+    clearError();
+    setLocalError(null);
+  }, []);
+
+  useEffect(() => {
+    if (email || password) {
+      clearError();
+      setLocalError(null);
+    }
+  }, [email, password]);
 
   // Handle login form submission
   const handleLogin = async () => {
+    // Prevent multiple simultaneous login attempts
+    if (isLoading) {
+      return;
+    }
+
+    // Clear any previous errors
+    clearError();
+    setLocalError(null);
+
     // Basic validation
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setLocalError('Please fill in all fields');
       return;
     }
 
@@ -44,14 +67,13 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     try {
       // Use AuthContext to login the user
       await login({ email, password });
-
       setIsLoading(false);
       // Navigation will be handled automatically by RootNavigator
       // based on the user's authentication and onboarding status
     } catch (error: any) {
       setIsLoading(false);
       const errorMessage = error.message || 'Login failed. Please try again.';
-      Alert.alert('Login Error', errorMessage);
+      setLocalError(errorMessage);
     }
   };
 
@@ -97,8 +119,17 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             showPasswordToggle
             autoCapitalize="none"
             autoCorrect={false}
-            containerClassName="mb-6"
+            containerClassName="mb-4"
           />
+
+          {/* Error Message */}
+          {localError && (
+            <View className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <Text className="text-red-600 text-sm font-medium text-center">
+                {localError}
+              </Text>
+            </View>
+          )}
 
           {/* Forgot Password Link */}
           <TouchableOpacity onPress={handleForgotPassword} className="mb-6">

@@ -41,26 +41,8 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error) => {
-        // Handle 401 errors by attempting token refresh
-        if (error.response?.status === 401) {
-          try {
-            // Try to refresh token
-            const authService = await import('../auth/authService');
-            await authService.default.refreshToken();
-
-            // Retry the original request
-            const originalRequest = error.config;
-            const newToken = await this.getAuthToken();
-            if (newToken) {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              return this.client.request(originalRequest);
-            }
-          } catch (refreshError) {
-            // Refresh failed, redirect to login
-            console.log('Token refresh failed, user needs to login again');
-          }
-        }
-
+        // Temporarily disable automatic token refresh to prevent infinite loops
+        // TODO: Implement proper token refresh logic later
         return Promise.reject(this.handleApiError(error));
       }
     );
@@ -77,8 +59,13 @@ class ApiClient {
   private handleApiError(error: any): ApiError {
     if (error.response) {
       // Server responded with error status
+      // FastAPI returns errors in 'detail' field, not 'message'
+      const errorMessage = error.response.data?.detail ||
+                          error.response.data?.message ||
+                          'Server error occurred';
+
       return {
-        message: error.response.data?.message || 'Server error occurred',
+        message: errorMessage,
         status: error.response.status,
         code: error.response.data?.code || 'SERVER_ERROR',
       };

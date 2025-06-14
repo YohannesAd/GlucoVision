@@ -221,7 +221,7 @@ class AuthService {
   /**
    * Clear all authentication data
    */
-  private async clearAuthData(): Promise<void> {
+  async clearAuthData(): Promise<void> {
     try {
       await Promise.all([
         storageService.removeSecureItem(this.TOKEN_KEY),
@@ -238,11 +238,14 @@ class AuthService {
    */
   private handleAuthError(error: any): Error {
     console.log('Auth error details:', error);
+    console.log('Error response data:', error.response?.data);
+    console.log('Error status:', error.response?.status);
 
     // Handle Axios errors
     if (error.response) {
       const status = error.response.status;
       const detail = error.response.data?.detail || error.response.data?.message;
+      console.log('Extracted detail:', detail);
 
       switch (status) {
         case 400:
@@ -262,7 +265,8 @@ class AuthService {
           return new Error('Invalid input. Please check your information.');
 
         case 401:
-          return new Error('Invalid email or password');
+          // Use the actual error message from the backend if available
+          return new Error(detail || 'Invalid email or password');
 
         case 403:
           return new Error('Account is deactivated');

@@ -17,6 +17,8 @@ type AuthAction =
   | { type: 'AUTH_START' }
   | { type: 'AUTH_SUCCESS'; payload: { user: User; token: string } }
   | { type: 'AUTH_FAILURE'; payload: string }
+  | { type: 'LOGIN_ERROR'; payload: string }
+  | { type: 'CLEAR_ERROR' }
   | { type: 'LOGOUT' }
   | { type: 'RESTORE_AUTH'; payload: { user: User; token: string } };
 
@@ -26,13 +28,14 @@ const initialState: AuthState = {
   token: null,
   isLoading: false,
   isAuthenticated: false,
+  error: null,
 };
 
 // Auth Reducer
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'AUTH_START':
-      return { ...state, isLoading: true };
+      return { ...state, isLoading: true, error: null };
 
     case 'AUTH_SUCCESS':
       return {
@@ -41,6 +44,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: true,
         user: action.payload.user,
         token: action.payload.token,
+        error: null,
       };
 
     case 'AUTH_FAILURE':
@@ -50,7 +54,20 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: false,
         user: null,
         token: null,
+        error: action.payload,
       };
+
+    case 'LOGIN_ERROR':
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
+        // Don't reset authentication state for login errors
+        // This prevents navigation reset to landing page
+      };
+
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
 
     case 'LOGOUT':
       return initialState;
@@ -61,6 +78,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: true,
         user: action.payload.user,
         token: action.payload.token,
+        error: null,
       };
 
     default:
@@ -76,6 +94,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   restoreAuth: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  clearError: () => void;
 }
 
 // Create Context
@@ -91,7 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Login function
   const login = async (credentials: LoginCredentials) => {
-    dispatch({ type: 'AUTH_START' });
+    // Don't dispatch AUTH_START to avoid loading state that affects navigation
 
     try {
       // Use real API service to login
@@ -115,8 +134,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
     } catch (error: any) {
-      const errorMessage = error.message || 'Login failed';
-      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
+      // Clear any stored tokens on login failure to prevent refresh attempts
+      try {
+        const { authService } = await import('../services/auth/authService');
+        await authService.clearAuthData();
+      } catch (clearError) {
+        console.warn('Failed to clear auth data:', clearError);
+      }
+
+      // Throw error so LoginScreen can handle it immediately
       throw error;
     }
   };
@@ -230,6 +256,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // Clear authentication error
+  const clearError = () => {
+    dispatch({ type: 'CLEAR_ERROR' });
+  };
+
   // Restore auth on app start
   useEffect(() => {
     restoreAuth();
@@ -242,6 +273,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     restoreAuth,
     completeOnboarding,
+    clearError,
   };
 
   return (
