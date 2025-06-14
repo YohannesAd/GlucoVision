@@ -444,6 +444,8 @@ async def forgot_password(
         # TODO: Send email with verification code
         # For now, we'll log it (in production, use proper email service)
         logger.info(f"Password reset code for {user.email}: {reset_token.verification_code}")
+        print(f"🔑 VERIFICATION CODE for {user.email}: {reset_token.verification_code}")
+        print("=" * 60)
 
         # Mask email for response
         email_parts = reset_data.email.split('@')
