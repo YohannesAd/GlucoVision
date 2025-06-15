@@ -112,15 +112,15 @@ class GlucoseAIService:
         """Calculate overview statistics"""
         glucose_values = df['glucose_value']
         
-        # Basic statistics
+        # Basic statistics - Convert numpy types to Python types for JSON serialization
         stats = {
-            'total_readings': len(df),
-            'average_glucose': round(glucose_values.mean(), 1),
-            'median_glucose': round(glucose_values.median(), 1),
-            'std_glucose': round(glucose_values.std(), 1),
-            'min_glucose': glucose_values.min(),
-            'max_glucose': glucose_values.max(),
-            'glucose_variability': round((glucose_values.std() / glucose_values.mean()) * 100, 1)
+            'total_readings': int(len(df)),
+            'average_glucose': round(float(glucose_values.mean()), 1),
+            'median_glucose': round(float(glucose_values.median()), 1),
+            'std_glucose': round(float(glucose_values.std()), 1),
+            'min_glucose': float(glucose_values.min()),
+            'max_glucose': float(glucose_values.max()),
+            'glucose_variability': round(float((glucose_values.std() / glucose_values.mean()) * 100), 1)
         }
         
         # Time in range analysis
@@ -132,9 +132,9 @@ class GlucoseAIService:
         above_range = (glucose_values > target_max).sum()
         
         stats.update({
-            'time_in_range_percent': round((in_range / len(df)) * 100, 1),
-            'time_below_range_percent': round((below_range / len(df)) * 100, 1),
-            'time_above_range_percent': round((above_range / len(df)) * 100, 1),
+            'time_in_range_percent': round(float((in_range / len(df)) * 100), 1),
+            'time_below_range_percent': round(float((below_range / len(df)) * 100), 1),
+            'time_above_range_percent': round(float((above_range / len(df)) * 100), 1),
             'readings_in_range': int(in_range),
             'readings_below_range': int(below_range),
             'readings_above_range': int(above_range)
@@ -185,9 +185,9 @@ class GlucoseAIService:
         return {
             "trend": trend,
             "direction": direction,
-            "slope": round(slope, 3),
-            "r_squared": round(r_squared, 3),
-            "recent_change": round(recent_change, 1),
+            "slope": round(float(slope), 3),
+            "r_squared": round(float(r_squared), 3),
+            "recent_change": round(float(recent_change), 1),
             "trend_strength": "strong" if r_squared > 0.7 else "moderate" if r_squared > 0.4 else "weak"
         }
     
@@ -197,21 +197,21 @@ class GlucoseAIService:
         
         # Time-of-day patterns
         hourly_avg = df.groupby('hour')['glucose_value'].mean()
-        patterns['hourly_averages'] = hourly_avg.to_dict()
+        patterns['hourly_averages'] = {int(k): float(v) for k, v in hourly_avg.to_dict().items()}
         patterns['peak_hour'] = int(hourly_avg.idxmax())
         patterns['lowest_hour'] = int(hourly_avg.idxmin())
-        
+
         # Day-of-week patterns
         daily_avg = df.groupby('day_of_week')['glucose_value'].mean()
-        patterns['daily_averages'] = daily_avg.to_dict()
+        patterns['daily_averages'] = {int(k): float(v) for k, v in daily_avg.to_dict().items()}
         patterns['weekend_vs_weekday'] = {
-            'weekend_avg': round(df[df['is_weekend']]['glucose_value'].mean(), 1),
-            'weekday_avg': round(df[~df['is_weekend']]['glucose_value'].mean(), 1)
+            'weekend_avg': round(float(df[df['is_weekend']]['glucose_value'].mean()), 1),
+            'weekday_avg': round(float(df[~df['is_weekend']]['glucose_value'].mean()), 1)
         }
         
         # Reading type patterns
         type_avg = df.groupby('reading_type')['glucose_value'].mean()
-        patterns['reading_type_averages'] = type_avg.to_dict()
+        patterns['reading_type_averages'] = {str(k): float(v) for k, v in type_avg.to_dict().items()}
         
         return patterns
     
@@ -296,15 +296,15 @@ class GlucoseAIService:
         # Dawn phenomenon (early morning rise)
         morning_readings = df[df['hour'].between(6, 9)]['glucose_value']
         night_readings = df[df['hour'].between(22, 24)]['glucose_value']
-        
+
         dawn_phenomenon = False
         if len(morning_readings) > 0 and len(night_readings) > 0:
             dawn_phenomenon = morning_readings.mean() > night_readings.mean() + 20
-        
+
         return {
-            "dawn_phenomenon_detected": dawn_phenomenon,
-            "morning_average": round(morning_readings.mean(), 1) if len(morning_readings) > 0 else None,
-            "evening_average": round(night_readings.mean(), 1) if len(night_readings) > 0 else None
+            "dawn_phenomenon_detected": bool(dawn_phenomenon),  # Convert numpy.bool_ to Python bool
+            "morning_average": round(float(morning_readings.mean()), 1) if len(morning_readings) > 0 else None,
+            "evening_average": round(float(night_readings.mean()), 1) if len(night_readings) > 0 else None
         }
     
     def _analyze_meal_correlation(self, df: pd.DataFrame) -> Dict[str, Any]:

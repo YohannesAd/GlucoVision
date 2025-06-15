@@ -123,13 +123,42 @@ export function GlucoseProvider({ children }: GlucoseProviderProps) {
     dispatch({ type: 'FETCH_LOGS_START' });
 
     try {
-      // TODO: Implement actual API call
-      // const logs = await glucoseService.fetchLogs(token);
-      // dispatch({ type: 'FETCH_LOGS_SUCCESS', payload: logs });
+      if (!token) {
+        throw new Error('No authentication token');
+      }
 
-      // Mock data for now
-      dispatch({ type: 'FETCH_LOGS_SUCCESS', payload: [] });
+      // Fetch glucose logs from backend
+      const response = await fetch(`${API_BASE_URL}/api/v1/glucose/logs`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Fetch logs error response:', response.status, errorText);
+        throw new Error(`Failed to fetch logs: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Convert backend logs to frontend format
+      const logs: GlucoseLog[] = data.logs.map((log: any) => ({
+        id: log.id,
+        userId: log.user_id,
+        value: log.glucose_value,
+        unit: log.unit,
+        logType: log.reading_type,
+        timestamp: log.reading_time,
+        notes: log.notes,
+        createdAt: log.created_at,
+      }));
+
+      dispatch({ type: 'FETCH_LOGS_SUCCESS', payload: logs });
     } catch (error) {
+      console.error('Fetch logs error:', error);
       dispatch({ type: 'FETCH_LOGS_FAILURE', payload: 'Failed to fetch logs' });
     }
   };

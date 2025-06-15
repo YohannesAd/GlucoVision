@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, FlatList } from 'react
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, GlucoseLog } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useGlucose } from '../../context/GlucoseContext';
 import { ScreenContainer, Button } from '../../components/ui';
 
 /**
@@ -37,7 +38,8 @@ type SortOrder = 'newest' | 'oldest';
 
 export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
   const { state } = useAuth();
-  const { user } = state;
+  const { user, token } = state;
+  const { fetchLogs, state: glucoseState } = useGlucose();
 
   // State for filters and data
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
@@ -45,59 +47,26 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for now - will be replaced with GlucoseContext
-  const [glucoseLogs, setGlucoseLogs] = useState<GlucoseLog[]>([
-    {
-      id: '1',
-      userId: user?.id || '',
-      value: 125,
-      unit: 'mg/dL',
-      logType: 'fasting',
-      notes: 'Morning reading before breakfast',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      userId: user?.id || '',
-      value: 180,
-      unit: 'mg/dL',
-      logType: 'after_meal',
-      notes: 'After lunch - had pasta',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '3',
-      userId: user?.id || '',
-      value: 95,
-      unit: 'mg/dL',
-      logType: 'before_meal',
-      notes: '',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '4',
-      userId: user?.id || '',
-      value: 110,
-      unit: 'mg/dL',
-      logType: 'bedtime',
-      notes: 'Before sleep',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '5',
-      userId: user?.id || '',
-      value: 85,
-      unit: 'mg/dL',
-      logType: 'fasting',
-      notes: 'Feeling a bit low',
-      timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), // 2 days ago
-      createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+  // Fetch glucose logs on component mount
+  useEffect(() => {
+    const loadLogs = async () => {
+      if (token) {
+        try {
+          setIsLoading(true);
+          await fetchLogs(token);
+        } catch (error) {
+          console.error('Failed to fetch glucose logs:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadLogs();
+  }, [token]);
+
+  // Use real glucose logs from context
+  const glucoseLogs = glucoseState.logs;
 
   // Get user's preferred glucose unit
   const glucoseUnit = user?.preferences?.glucoseUnit || 'mg/dL';

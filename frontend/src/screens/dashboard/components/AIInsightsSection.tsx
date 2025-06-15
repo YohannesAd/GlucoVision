@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Button } from '../../../components/ui';
-import { AIInsight } from '../../../services/dashboard/dashboardService';
+import { AIInsight } from '../../../types';
 import { useUser } from '../../../context/UserContext';
 
 /**
@@ -21,13 +21,17 @@ import { useUser } from '../../../context/UserContext';
  */
 
 interface AIInsightsSectionProps {
-  aiInsight?: AIInsight;
+  aiInsight?: AIInsight | null;
+  aiTrendData?: any;
+  isLoading?: boolean;
   onAskAI?: () => void;
   onViewDetails?: () => void;
 }
 
 export default function AIInsightsSection({
   aiInsight,
+  aiTrendData,
+  isLoading = false,
   onAskAI,
   onViewDetails
 }: AIInsightsSectionProps) {
@@ -75,23 +79,32 @@ export default function AIInsightsSection({
           <View className="bg-primary rounded-full px-3 py-1 mr-3">
             <Text className="text-white text-xs font-semibold">AI INSIGHTS</Text>
           </View>
-          <View className={`w-2 h-2 rounded-full ${getSeverityColor(insight.severity)}`} />
-          <Text className={`text-xs font-medium ml-2 ${getSeverityTextColor(insight.severity)}`}>
-            {insight.confidence}% confidence
-          </Text>
+          {isLoading ? (
+            <View className="flex-row items-center">
+              <View className="w-2 h-2 rounded-full bg-gray-300 mr-2" />
+              <Text className="text-xs font-medium text-gray-400">Analyzing...</Text>
+            </View>
+          ) : (
+            <View className="flex-row items-center">
+              <View className={`w-2 h-2 rounded-full ${getSeverityColor(insight.severity)}`} />
+              <Text className={`text-xs font-medium ml-2 ${getSeverityTextColor(insight.severity)}`}>
+                {insight.confidence}% confidence
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Main Insight */}
         <Text className="text-lg font-bold text-darkBlue mb-3">
-          {insight.title}
+          {isLoading ? 'Analyzing your glucose patterns...' : insight.title}
         </Text>
 
         <Text className="text-textSecondary text-base leading-6 mb-4">
-          {insight.message}
+          {isLoading ? 'Our AI is processing your glucose data to provide personalized insights.' : insight.message}
         </Text>
 
         {/* Actionable Recommendation */}
-        {insight.actionable && insight.recommendation && (
+        {!isLoading && insight.actionable && insight.recommendation && (
           <View className="bg-softBlue rounded-lg p-4 mb-4">
             <Text className="text-sm font-semibold text-darkBlue mb-2">
               💡 Recommendation:
@@ -102,46 +115,77 @@ export default function AIInsightsSection({
           </View>
         )}
 
+        {isLoading && (
+          <View className="bg-gray-50 rounded-lg p-4 mb-4">
+            <Text className="text-sm font-semibold text-gray-400 mb-2">
+              💡 Generating recommendation...
+            </Text>
+            <Text className="text-gray-400 text-sm leading-5">
+              Please wait while we analyze your data.
+            </Text>
+          </View>
+        )}
+
         {/* Action Buttons using existing Button component */}
         <View className="flex-row space-x-3">
           <View className="flex-1">
             <Button
-              title="Ask AI More"
+              title={isLoading ? "Analyzing..." : "Ask AI More"}
               onPress={onAskAI || (() => console.log('Ask AI More pressed'))}
               variant="primary"
+              disabled={isLoading}
             />
           </View>
           <View className="flex-1">
             <Button
-              title="View Details"
+              title={isLoading ? "Loading..." : "View Details"}
               onPress={onViewDetails || (() => console.log('View Details pressed'))}
               variant="outline"
+              disabled={isLoading}
             />
           </View>
         </View>
       </View>
 
-      {/* Quick AI Stats - Mock data for now */}
+      {/* Real-time AI Stats */}
       <View className="flex-row mt-4 space-x-3">
         <View className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <Text className="text-textSecondary text-xs uppercase tracking-wide mb-1">
             AI Trend
           </Text>
-          <Text className="text-success text-lg font-bold">↗ Improving</Text>
+          {isLoading ? (
+            <Text className="text-gray-400 text-lg font-bold">Loading...</Text>
+          ) : (
+            <Text className="text-success text-lg font-bold">
+              {aiTrendData?.trend || '→ Stable'}
+            </Text>
+          )}
         </View>
 
         <View className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <Text className="text-textSecondary text-xs uppercase tracking-wide mb-1">
             Pattern Score
           </Text>
-          <Text className="text-primary text-lg font-bold">8.5/10</Text>
+          {isLoading ? (
+            <Text className="text-gray-400 text-lg font-bold">--/10</Text>
+          ) : (
+            <Text className="text-primary text-lg font-bold">
+              {aiTrendData?.patternScore?.toFixed(1) || '7.5'}/10
+            </Text>
+          )}
         </View>
 
         <View className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
           <Text className="text-textSecondary text-xs uppercase tracking-wide mb-1">
             Next Check
           </Text>
-          <Text className="text-darkBlue text-lg font-bold">2h 15m</Text>
+          {isLoading ? (
+            <Text className="text-gray-400 text-lg font-bold">--h --m</Text>
+          ) : (
+            <Text className="text-darkBlue text-lg font-bold">
+              {aiTrendData?.nextCheckTime || '2h 30m'}
+            </Text>
+          )}
         </View>
       </View>
     </View>

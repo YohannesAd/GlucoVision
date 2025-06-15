@@ -59,14 +59,22 @@ async def get_ai_insights(
     """
     try:
         # Get glucose logs for analysis
-        start_date = datetime.utcnow() - timedelta(days=days)
+        # For comprehensive AI analysis, include all user logs, not just recent ones
+        # This ensures onboarding data is included in the analysis
         logs = await GlucoseLog.get_user_logs(
             db,
             user_id=current_user.id,
-            start_date=start_date,
-            limit=1000  # Reasonable limit for AI analysis
+            limit=1000  # Get all logs for comprehensive analysis
         )
-        
+
+        # Debug logging
+        logger.info(f"AI Insights Debug - User: {current_user.email}")
+        logger.info(f"AI Insights Debug - Days filter: {days} (using all logs)")
+        logger.info(f"AI Insights Debug - Logs found: {len(logs)}")
+        if logs:
+            logger.info(f"AI Insights Debug - Oldest log: {min(log.reading_time for log in logs)}")
+            logger.info(f"AI Insights Debug - Newest log: {max(log.reading_time for log in logs)}")
+
         # Perform AI analysis
         analysis = await ai_service.analyze_glucose_patterns(current_user, logs)
         
@@ -201,11 +209,10 @@ async def get_personalized_recommendations(
     """
     try:
         # Get glucose logs for recommendation analysis
-        start_date = datetime.utcnow() - timedelta(days=days)
+        # Include all user logs for comprehensive recommendations
         logs = await GlucoseLog.get_user_logs(
             db,
             user_id=current_user.id,
-            start_date=start_date,
             limit=1000
         )
         
