@@ -58,18 +58,30 @@ pip install -r requirements.txt
 ### 3. Run Development Server
 
 ```bash
-# Start development server
+# Start development server (localhost only)
 python run.py
 
-# Or with custom settings
+# Start server accessible from mobile devices (RECOMMENDED)
 python run.py --host 0.0.0.0 --port 8000
+
+# Alternative methods
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+.venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+**⚠️ Important for Mobile Development:**
+
+- Use `--host 0.0.0.0` to make the API accessible from mobile devices
+- Update frontend configuration with your computer's IP address
+- Find your IP: `ipconfig | grep "IPv4"` (Windows) or `ifconfig | grep "inet"` (macOS/Linux)
 
 ### 4. Access API Documentation
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **Health Check**: http://localhost:8000/health
+- **Swagger UI**: http://YOUR_IP:8000/docs (or http://localhost:8000/docs)
+- **ReDoc**: http://YOUR_IP:8000/redoc
+- **Health Check**: http://YOUR_IP:8000/health
+
+**Note**: Replace `YOUR_IP` with your computer's actual IP address when accessing from mobile devices.
 
 ## 🔧 Configuration
 

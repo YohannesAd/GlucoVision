@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { TodayStats, WeeklyTrend } from '../../../services/dashboard/dashboardService';
 
 /**
  * OverviewCardsSection - Today's glucose overview with visual indicators
@@ -15,39 +16,34 @@ import { View, Text } from 'react-native';
  * - glucoseData: Object containing latest reading, averages, and trends
  */
 
-interface GlucoseData {
-  latestReading: {
-    value: number;
-    timestamp: string;
-    status: 'normal' | 'high' | 'low';
-  };
-  todayAverage: number;
-  todayReadingsCount: number;
-  weeklyTrend: {
-    direction: 'improving' | 'stable' | 'declining';
-    percentage: number;
-    timeInRange: number;
-  };
-}
-
 interface OverviewCardsSectionProps {
-  glucoseData?: GlucoseData;
+  todayStats?: TodayStats;
+  weeklyTrend?: WeeklyTrend;
 }
 
-export default function OverviewCardsSection({ glucoseData }: OverviewCardsSectionProps) {
+export default function OverviewCardsSection({ todayStats, weeklyTrend }: OverviewCardsSectionProps) {
   // Default mock data - will be replaced with real data from props
-  const defaultData: GlucoseData = {
-    latestReading: { value: 125, timestamp: '2 hours ago', status: 'normal' },
-    todayAverage: 118,
-    todayReadingsCount: 3,
-    weeklyTrend: {
-      direction: 'improving',
-      percentage: 8,
-      timeInRange: 75
-    }
+  const defaultTodayStats: TodayStats = {
+    average: 118,
+    readingsCount: 3,
+    latestReading: {
+      id: '1',
+      value: 125,
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      timeOfDay: 'after_meal',
+      status: 'normal'
+    },
+    timeInRange: 75
   };
 
-  const data = glucoseData || defaultData;
+  const defaultWeeklyTrend: WeeklyTrend = {
+    direction: 'improving',
+    percentage: 8,
+    averageChange: -5
+  };
+
+  const stats = todayStats || defaultTodayStats;
+  const trend = weeklyTrend || defaultWeeklyTrend;
 
   // Get status color based on glucose level
   const getStatusColor = (status: string) => {
@@ -57,6 +53,17 @@ export default function OverviewCardsSection({ glucoseData }: OverviewCardsSecti
       case 'low': return 'bg-error';
       default: return 'bg-gray-400';
     }
+  };
+
+  // Get time ago string
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours === 1) return '1 hour ago';
+    return `${diffInHours} hours ago`;
   };
 
   const getStatusTextColor = (status: string) => {
@@ -79,15 +86,15 @@ export default function OverviewCardsSection({ glucoseData }: OverviewCardsSecti
             Latest Reading
           </Text>
           <Text className="text-2xl font-bold text-darkBlue">
-            {data.latestReading.value}
+            {stats.latestReading?.value || '--'}
           </Text>
           <Text className="text-textSecondary text-xs">
-            mg/dL • {data.latestReading.timestamp}
+            mg/dL • {stats.latestReading ? getTimeAgo(stats.latestReading.timestamp) : 'No data'}
           </Text>
           <View className="flex-row items-center mt-2">
-            <View className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(data.latestReading.status)}`} />
-            <Text className={`text-xs font-medium capitalize ${getStatusTextColor(data.latestReading.status)}`}>
-              {data.latestReading.status}
+            <View className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(stats.latestReading?.status || 'normal')}`} />
+            <Text className="text-success text-xs font-medium">
+              {stats.timeInRange}% in range
             </Text>
           </View>
         </View>
@@ -98,14 +105,14 @@ export default function OverviewCardsSection({ glucoseData }: OverviewCardsSecti
             Today's Average
           </Text>
           <Text className="text-2xl font-bold text-darkBlue">
-            {data.todayAverage}
+            {stats.average}
           </Text>
           <Text className="text-textSecondary text-xs">
-            mg/dL • {data.todayReadingsCount} readings
+            mg/dL • {stats.readingsCount} readings
           </Text>
           <View className="flex-row items-center mt-2">
-            <Text className="text-primary text-xs font-medium">
-              ↗ +{data.weeklyTrend.percentage}% vs yesterday
+            <Text className={`text-xs font-medium ${trend.direction === 'improving' ? 'text-success' : trend.direction === 'declining' ? 'text-error' : 'text-textSecondary'}`}>
+              {trend.direction === 'improving' ? '↗' : trend.direction === 'declining' ? '↘' : '→'} {Math.abs(trend.percentage)}% vs last week
             </Text>
           </View>
         </View>
@@ -117,22 +124,22 @@ export default function OverviewCardsSection({ glucoseData }: OverviewCardsSecti
           Weekly Trend Analysis
         </Text>
         <Text className="text-lg font-bold text-darkBlue mb-2">
-          Glucose Control {data.weeklyTrend.direction === 'improving' ? 'Improving' : 
-                          data.weeklyTrend.direction === 'stable' ? 'Stable' : 'Needs Attention'}
+          Glucose Control {trend.direction === 'improving' ? 'Improving' :
+                          trend.direction === 'stable' ? 'Stable' : 'Needs Attention'}
         </Text>
         <Text className="text-textSecondary text-sm mb-3">
-          Your average glucose has {data.weeklyTrend.direction === 'improving' ? 'decreased' : 'changed'} by {data.weeklyTrend.percentage}% this week. 
-          {data.weeklyTrend.direction === 'improving' ? ' Great progress!' : ''}
+          Your average glucose has {trend.direction === 'improving' ? 'decreased' : 'changed'} by {Math.abs(trend.percentage)}% this week.
+          {trend.direction === 'improving' ? ' Great progress!' : ''}
         </Text>
         <View className="flex-row items-center">
           <View className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
-            <View 
-              className="bg-success h-2 rounded-full" 
-              style={{ width: `${data.weeklyTrend.timeInRange}%` }} 
+            <View
+              className="bg-success h-2 rounded-full"
+              style={{ width: `${stats.timeInRange}%` }}
             />
           </View>
           <Text className="text-success text-sm font-medium">
-            {data.weeklyTrend.timeInRange}% in range
+            {stats.timeInRange}% in range
           </Text>
         </View>
       </View>

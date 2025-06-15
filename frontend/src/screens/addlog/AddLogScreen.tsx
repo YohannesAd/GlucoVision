@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Platform } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { RootStackParamList, GlucoseLog } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useGlucose } from '../../context/GlucoseContext';
 import { ScreenContainer, FormInput, Button } from '../../components/ui';
-import { FieldPicker } from '../../components/onboarding';
 
 /**
  * AddLogScreen - Add new glucose reading
@@ -33,7 +34,8 @@ interface AddLogScreenProps {
 
 export default function AddLogScreen({ navigation }: AddLogScreenProps) {
   const { state } = useAuth();
-  const { user } = state;
+  const { user, token } = state;
+  const { addLog } = useGlucose();
 
   // Form state
   const [glucoseValue, setGlucoseValue] = useState('');
@@ -114,7 +116,7 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
     setIsLoading(true);
 
     try {
-      // TODO: Integrate with GlucoseContext to save the log
+      // Create new glucose log
       const newLog: Omit<GlucoseLog, 'id' | 'createdAt'> = {
         userId: user?.id || '',
         value: parseInt(glucoseValue),
@@ -124,11 +126,14 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         timestamp: selectedDate.toISOString(),
       };
 
-      // For now, just show success message
-      // await glucoseContext.addLog(newLog);
+      // Save the log using GlucoseContext
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+      await addLog(newLog, token);
 
       setIsLoading(false);
-      
+
       Alert.alert(
         'Success!',
         'Your glucose reading has been saved successfully.',
@@ -151,16 +156,17 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
       );
     } catch (error) {
       setIsLoading(false);
+      console.error('Save glucose log error:', error);
       Alert.alert('Error', 'Failed to save glucose reading. Please try again.');
     }
   };
 
   // Handle date/time change
-  const handleDateTimeChange = () => {
-    // For now, just set to current time
-    // TODO: Implement proper date/time picker
-    setSelectedDate(new Date());
-    Alert.alert('Feature Coming Soon', 'Custom date/time selection will be available in a future update.');
+  const handleDateTimeChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+    }
   };
 
   return (
@@ -245,7 +251,7 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
               When was this reading taken?
             </Text>
             <TouchableOpacity
-              onPress={handleDateTimeChange}
+              onPress={() => setShowDatePicker(true)}
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-4"
             >
               <View className="flex-row justify-between items-center">
@@ -307,17 +313,49 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
       {/* Glucose Value Picker Modal */}
       <Modal
         visible={showValuePicker}
+        transparent={true}
         animationType="slide"
-        presentationStyle="pageSheet"
       >
-        <FieldPicker
-          title="Select Glucose Value"
-          options={glucoseOptions}
-          selectedValue={glucoseValue}
-          onSelect={handleValueSelect}
-          onCancel={() => setShowValuePicker(false)}
-        />
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-6 max-h-96">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-lg font-semibold text-textPrimary">Select Glucose Value</Text>
+              <TouchableOpacity onPress={() => setShowValuePicker(false)}>
+                <Text className="text-primary font-medium">Done</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {glucoseOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  className={`py-3 px-4 rounded-lg mb-2 ${
+                    glucoseValue === option.value ? 'bg-primary' : 'bg-gray-50'
+                  }`}
+                  onPress={() => handleValueSelect(option.value)}
+                >
+                  <Text className={`text-center font-medium ${
+                    glucoseValue === option.value ? 'text-white' : 'text-textPrimary'
+                  }`}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
+
+      {/* Date Time Picker */}
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="datetime"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateTimeChange}
+          maximumDate={new Date()}
+        />
+      )}
     </ScreenContainer>
   );
 }

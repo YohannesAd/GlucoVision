@@ -9,10 +9,10 @@ const getApiBaseUrl = (): string => {
   const isDevelopment = __DEV__;
 
   if (isDevelopment) {
-    // For iOS Simulator and local testing
-    // Using computer's IP address instead of localhost for iOS compatibility
-    // Note: Make sure backend is running with --host 0.0.0.0 --port 8001
-    return 'http://10.0.0.226:8001'; // FastAPI development server
+    // For mobile devices and emulators, use your computer's IP address
+    // Make sure backend is running with --host 0.0.0.0 --port 8000
+    // Replace with your computer's actual IP address
+    return 'http://10.0.0.226:8000'; // FastAPI development server
   }
 
   return 'https://your-glucovision-api.railway.app'; // Production (Railway)
@@ -24,6 +24,9 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
 } as const;
+
+// Export API_BASE_URL for backward compatibility with existing services
+export const API_BASE_URL = API_CONFIG.BASE_URL;
 
 // API Endpoints (FastAPI Backend)
 export const ENDPOINTS = {

@@ -59,7 +59,7 @@ class OnboardingService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/users`;
+    this.baseUrl = `${API_BASE_URL}/api/v1/users`;
   }
 
   /**
@@ -154,15 +154,30 @@ class OnboardingService {
   }
 
   /**
+   * Map frontend time of day values to backend reading types
+   */
+  private mapTimeOfDayToReadingType(timeOfDay: string): string {
+    const mapping: { [key: string]: string } = {
+      'Fasting': 'fasting',
+      'Before Meal': 'before_meal',
+      'After Meal': 'after_meal',
+      'Bedtime': 'bedtime',
+      'Random': 'random',
+    };
+    return mapping[timeOfDay] || timeOfDay.toLowerCase().replace(' ', '_');
+  }
+
+  /**
    * Submit onboarding step 3 data and complete onboarding
    */
   async submitStep3(data: OnboardingStep3Data, token: string): Promise<any> {
     try {
+      // Convert frontend data format to backend expected format
       const payload = {
         glucose_readings: data.glucoseReadings.map(reading => ({
-          value: reading.value,
-          time_of_day: reading.timeOfDay,
-          recorded_at: reading.recordedAt || new Date().toISOString(),
+          glucose_value: reading.value,
+          reading_time: reading.recordedAt || new Date().toISOString(),
+          reading_type: this.mapTimeOfDayToReadingType(reading.timeOfDay),
         })),
         preferred_unit: data.preferredUnit,
         target_range_min: data.targetRangeMin || 80,
@@ -213,10 +228,10 @@ class OnboardingService {
 
       const defaultStep3: OnboardingStep3Data = {
         glucoseReadings: [
-          { value: 100, timeOfDay: 'fasting' },
-          { value: 120, timeOfDay: 'before_meal' },
-          { value: 140, timeOfDay: 'after_meal' },
-          { value: 110, timeOfDay: 'bedtime' },
+          { value: 100, timeOfDay: 'Fasting' },
+          { value: 120, timeOfDay: 'Before Meal' },
+          { value: 140, timeOfDay: 'After Meal' },
+          { value: 110, timeOfDay: 'Bedtime' },
         ],
         preferredUnit: 'mg/dL',
         targetRangeMin: 80,

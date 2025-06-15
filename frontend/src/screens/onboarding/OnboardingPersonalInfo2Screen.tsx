@@ -4,6 +4,8 @@ import { Button, FormInput } from '../../components/ui';
 import { OnboardingLayout, FieldPicker, OptionGrid } from '../../components/onboarding';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuth } from '../../context/AuthContext';
+import { onboardingService } from '../../services/onboarding/onboardingService';
 
 /**
  * OnboardingPersonalInfo2Screen - Second step of onboarding
@@ -26,6 +28,8 @@ interface OnboardingPersonalInfo2ScreenProps {
 }
 
 export default function OnboardingPersonalInfo2Screen({ navigation }: OnboardingPersonalInfo2ScreenProps) {
+  const { state } = useAuth();
+
   // Form state
   const [mealsPerDay, setMealsPerDay] = useState('');
   const [activityLevel, setActivityLevel] = useState('');
@@ -85,25 +89,31 @@ export default function OnboardingPersonalInfo2Screen({ navigation }: Onboarding
   };
 
   // Handle form submission and navigation to next step
-  const handleNext = () => {
+  const handleNext = async () => {
     // Basic validation
     if (!mealsPerDay || !activityLevel || takesInsulin === null || !sleepDuration) {
       Alert.alert('Required Fields', 'Please fill in all required fields to continue.');
       return;
     }
 
-    // TODO: Save data to context or storage
-    // const lifestyleInfo = {
-    //   mealsPerDay,
-    //   activityLevel,
-    //   takesInsulin,
-    //   insulinType: takesInsulin ? insulinType : null,
-    //   currentMedications,
-    //   sleepDuration
-    // };
+    try {
+      // Prepare and submit step 2 data
+      const step2Data = {
+        mealsPerDay: parseInt(mealsPerDay),
+        activityLevel: activityLevel.toLowerCase(),
+        usesInsulin: takesInsulin,
+        currentMedications: currentMedications ? [currentMedications] : [],
+        sleepDuration: parseInt(sleepDuration),
+      };
 
-    // Navigate to next onboarding step
-    navigation.navigate('OnboardingPersonalInfo3');
+      if (state.token) {
+        await onboardingService.submitStep2(step2Data, state.token);
+        navigation.navigate('OnboardingPersonalInfo3');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information. Please try again.');
+      console.error('Step 2 submission error:', error);
+    }
   };
 
   // Handle back navigation

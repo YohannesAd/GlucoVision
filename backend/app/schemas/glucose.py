@@ -82,7 +82,18 @@ class GlucoseLogCreate(BaseModel):
     @validator("reading_time")
     def validate_reading_time(cls, v):
         """Validate reading time is not in the future"""
-        if v > datetime.utcnow():
+        from datetime import timezone
+
+        # Convert to UTC for comparison
+        if v.tzinfo is not None:
+            # If timezone-aware, convert to UTC
+            v_utc = v.astimezone(timezone.utc).replace(tzinfo=None)
+        else:
+            # If timezone-naive, assume it's already in UTC
+            v_utc = v
+
+        # Compare with current UTC time
+        if v_utc > datetime.utcnow():
             raise ValueError("Reading time cannot be in the future")
         return v
     

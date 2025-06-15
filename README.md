@@ -98,47 +98,85 @@ Landing → Authentication → Onboarding → Dashboard
 
 ## ⚙️ Development Setup
 
-### **Backend (FastAPI)**
+### **🚀 Quick Start (Recommended)**
+
+**Step 1: Start Backend**
 
 ```bash
-# Navigate to backend directory
+# From project root directory
 cd backend
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+# Install dependencies (first time only)
 pip install -r requirements.txt
 
-# Set up environment variables
-cp .env.example .env
-
-# Run database migrations
-alembic upgrade head
-
-# Start development server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Start backend server (accessible from mobile devices)
+python run.py --host 0.0.0.0 --port 8000
 ```
 
-### **Frontend (React Native + Expo)**
+**Step 2: Update Frontend IP Configuration**
 
 ```bash
-# Navigate to frontend directory
+# Find your computer's IP address
+ipconfig | grep "IPv4"  # Windows
+ifconfig | grep "inet"  # macOS/Linux
+
+# Update frontend/src/services/api/config.ts
+# Replace 'localhost' with your computer's IP address (e.g., 192.168.1.100)
+```
+
+**Step 3: Start Frontend**
+
+```bash
+# From project root directory
 cd frontend
 
-# Install dependencies
+# Install dependencies (first time only)
 npm install
 
 # Start Expo development server
-npx expo start
+npm start
+```
+
+### **📱 Access Points**
+
+- **Backend API**: `http://YOUR_IP:8000`
+- **API Documentation**: `http://YOUR_IP:8000/docs`
+- **Frontend**: Scan QR code with Expo Go app
+
+---
+
+### **🔧 Alternative Backend Startup Methods**
+
+```bash
+# Method 1: Using run.py (Recommended)
+python run.py --host 0.0.0.0 --port 8000
+
+# Method 2: Using uvicorn directly
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Method 3: Using virtual environment python
+.venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Method 4: Production mode
+python run.py --prod --workers 4
+```
+
+### **📱 Frontend Development Options**
+
+```bash
+# Start development server
+npm start
 
 # Run on specific platform
 npx expo start --ios     # iOS simulator
 npx expo start --android # Android emulator
+npx expo start --web     # Web browser
+
+# Clear cache if needed
+npx expo start --clear
 ```
 
-### **Docker Development**
+### **🐳 Docker Development**
 
 ```bash
 # Build and run entire stack
@@ -147,6 +185,75 @@ docker-compose up --build
 # Backend API: http://localhost:8000
 # API Documentation: http://localhost:8000/docs
 # Frontend: Expo DevTools will open automatically
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### **❌ "Network Error" in Frontend**
+
+**Problem**: Frontend shows "Network error - please check your connection"
+
+**Solution**:
+
+1. **Check Backend**: Ensure backend is running with `--host 0.0.0.0`
+2. **Update IP Address**: Replace `localhost` in `frontend/src/services/api/config.ts` with your computer's IP
+3. **Find IP Address**:
+
+   ```bash
+   # Windows
+   ipconfig | grep "IPv4"
+
+   # macOS/Linux
+   ifconfig | grep "inet"
+   ```
+
+4. **Test Backend**: Visit `http://YOUR_IP:8000/docs` in browser
+
+### **❌ Backend Won't Start**
+
+**Problem**: Backend fails to start or shows import errors
+
+**Solutions**:
+
+```bash
+# Install missing dependencies
+pip install -r requirements.txt
+
+# Install specific missing packages
+pip install aiosqlite uvicorn[standard]
+
+# Use virtual environment python
+.venv/Scripts/python.exe backend/run.py --host 0.0.0.0 --port 8000
+```
+
+### **❌ Frontend Won't Connect to Backend**
+
+**Problem**: Frontend can't reach backend API
+
+**Checklist**:
+
+- ✅ Backend running with `--host 0.0.0.0` (not just `localhost`)
+- ✅ Frontend config uses computer's IP address (not `localhost`)
+- ✅ Both devices on same WiFi network
+- ✅ Firewall allows port 8000
+
+### **📱 Quick Commands Reference**
+
+```bash
+# Backend startup (from project root)
+cd backend && python run.py --host 0.0.0.0 --port 8000
+
+# Frontend startup (from project root)
+cd frontend && npm start
+
+# Find your IP address
+ipconfig | grep "IPv4"  # Windows
+ifconfig | grep "inet"  # macOS/Linux
+
+# Test backend API
+curl http://YOUR_IP:8000/health
 ```
 
 ---

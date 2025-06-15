@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Button } from '../../../components/ui';
+import { AIInsight } from '../../../services/dashboard/dashboardService';
+import { useUser } from '../../../context/UserContext';
 
 /**
  * AIInsightsSection - Main AI-powered insights hero section
@@ -18,16 +20,6 @@ import { Button } from '../../../components/ui';
  * - onViewDetails: Function to handle "View Details" action
  */
 
-interface AIInsight {
-  type: 'recommendation' | 'warning' | 'trend' | 'alert';
-  title: string;
-  message: string;
-  confidence: number;
-  actionable: boolean;
-  recommendation?: string;
-  severity: 'positive' | 'warning' | 'critical' | 'info';
-}
-
 interface AIInsightsSectionProps {
   aiInsight?: AIInsight;
   onAskAI?: () => void;
@@ -39,15 +31,19 @@ export default function AIInsightsSection({
   onAskAI,
   onViewDetails
 }: AIInsightsSectionProps) {
-  // Default mock data - will be replaced with real data from props
+  const { state } = useUser();
+  const userProfile = state.profile;
+
+  // Default mock data with personalization based on user profile
   const defaultInsight: AIInsight = {
     type: 'recommendation',
-    title: 'Your glucose levels are trending well',
-    message: 'Based on your recent readings, your glucose control has improved by 15% this week. Keep up the great work with your current routine!',
+    title: `${userProfile?.firstName || 'Your'} glucose levels are trending well`,
+    message: `Based on your ${userProfile?.diabetesType || 'diabetes'} management and recent readings, your glucose control has improved by 15% this week. Keep up the great work with your current routine!`,
     confidence: 92,
-    actionable: true,
-    recommendation: 'Continue your current meal timing and consider adding a 10-minute walk after lunch.',
-    severity: 'positive'
+    severity: 'positive',
+    recommendation: userProfile?.usesInsulin
+      ? 'Continue your current insulin timing and consider adding a 10-minute walk after lunch.'
+      : 'Continue your current meal timing and consider adding a 10-minute walk after lunch.',
   };
 
   const insight = aiInsight || defaultInsight;

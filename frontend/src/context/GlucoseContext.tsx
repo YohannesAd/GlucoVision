@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { GlucoseLog } from '../types';
+import { API_BASE_URL } from '../services/api/config';
 
 /**
  * GlucoseContext - Global glucose data management
@@ -97,11 +98,11 @@ function glucoseReducer(state: GlucoseState, action: GlucoseAction): GlucoseStat
 // Context Interface
 interface GlucoseContextType {
   state: GlucoseState;
-  fetchLogs: () => Promise<void>;
-  addLog: (log: Omit<GlucoseLog, 'id' | 'createdAt'>) => Promise<void>;
-  updateLog: (id: string, updates: Partial<GlucoseLog>) => Promise<void>;
-  deleteLog: (id: string) => Promise<void>;
-  syncData: () => Promise<void>;
+  fetchLogs: (token: string) => Promise<void>;
+  addLog: (log: Omit<GlucoseLog, 'id' | 'createdAt'>, token: string) => Promise<void>;
+  updateLog: (id: string, updates: Partial<GlucoseLog>, token: string) => Promise<void>;
+  deleteLog: (id: string, token: string) => Promise<void>;
+  syncData: (token: string) => Promise<void>;
   getRecentLogs: (days: number) => GlucoseLog[];
   getAverageGlucose: (days: number) => number | null;
 }
@@ -118,14 +119,14 @@ export function GlucoseProvider({ children }: GlucoseProviderProps) {
   const [state, dispatch] = useReducer(glucoseReducer, initialState);
 
   // Fetch logs from API
-  const fetchLogs = async () => {
+  const fetchLogs = async (token: string) => {
     dispatch({ type: 'FETCH_LOGS_START' });
-    
+
     try {
       // TODO: Implement actual API call
-      // const logs = await glucoseService.fetchLogs();
+      // const logs = await glucoseService.fetchLogs(token);
       // dispatch({ type: 'FETCH_LOGS_SUCCESS', payload: logs });
-      
+
       // Mock data for now
       dispatch({ type: 'FETCH_LOGS_SUCCESS', payload: [] });
     } catch (error) {
@@ -134,26 +135,91 @@ export function GlucoseProvider({ children }: GlucoseProviderProps) {
   };
 
   // Add new glucose log
-  const addLog = async (logData: Omit<GlucoseLog, 'id' | 'createdAt'>) => {
+  const addLog = async (logData: Omit<GlucoseLog, 'id' | 'createdAt'>, token: string) => {
+    dispatch({ type: 'ADD_LOG_START' });
+
     try {
-      // TODO: Implement actual API call
-      // const newLog = await glucoseService.addLog(logData);
-      
-      // Mock implementation
-      const newLog: GlucoseLog = {
-        ...logData,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+
+      // Map frontend log type to backend reading type
+      const readingTypeMap: { [key: string]: string } = {
+        'fasting': 'fasting',
+        'before_meal': 'before_meal',
+        'after_meal': 'after_meal',
+        'bedtime': 'bedtime',
+        'random': 'random',
       };
-      
+
+      // Prepare data for backend with all required fields
+      const backendData = {
+        glucose_value: logData.value,
+        unit: logData.unit,
+        reading_type: readingTypeMap[logData.logType] || logData.logType,
+        meal_type: null, // Optional field
+        reading_time: logData.timestamp,
+        notes: logData.notes || null,
+        symptoms: null,
+        carbs_consumed: null,
+        exercise_duration: null,
+        exercise_type: null,
+        insulin_taken: false,
+        insulin_units: null,
+        medication_taken: false,
+        medication_notes: null,
+        stress_level: null,
+        sleep_hours: null,
+        illness: false,
+        illness_notes: null,
+      };
+
+      // Save to backend
+      const response = await fetch(`${API_BASE_URL}/api/v1/glucose/logs`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backendData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error response:', response.status, errorText);
+
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.detail || `Backend error: ${response.status}`);
+        } catch (parseError) {
+          throw new Error(`Backend error: ${response.status} - ${errorText}`);
+        }
+      }
+
+      const savedLog = await response.json();
+
+      // Convert backend response to frontend format
+      const newLog: GlucoseLog = {
+        id: savedLog.id,
+        userId: logData.userId,
+        value: savedLog.glucose_value,
+        unit: savedLog.unit,
+        logType: savedLog.reading_type,
+        timestamp: savedLog.reading_time,
+        notes: savedLog.notes,
+        createdAt: savedLog.created_at,
+      };
+
       dispatch({ type: 'ADD_LOG_SUCCESS', payload: newLog });
     } catch (error) {
-      throw new Error('Failed to add log');
+      console.error('Add glucose log error:', error);
+      dispatch({ type: 'ADD_LOG_FAILURE', payload: 'Failed to add log' });
+      throw error;
     }
   };
 
   // Update existing log
-  const updateLog = async (id: string, updates: Partial<GlucoseLog>) => {
+  const updateLog = async (id: string, updates: Partial<GlucoseLog>, token: string) => {
     try {
       // TODO: Implement actual API call
       // const updatedLog = await glucoseService.updateLog(id, updates);
@@ -170,7 +236,7 @@ export function GlucoseProvider({ children }: GlucoseProviderProps) {
   };
 
   // Delete log
-  const deleteLog = async (id: string) => {
+  const deleteLog = async (id: string, token: string) => {
     try {
       // TODO: Implement actual API call
       // await glucoseService.deleteLog(id);
@@ -182,7 +248,7 @@ export function GlucoseProvider({ children }: GlucoseProviderProps) {
   };
 
   // Sync data with backend
-  const syncData = async () => {
+  const syncData = async (token: string) => {
     try {
       // TODO: Implement actual sync logic
       // const syncedLogs = await glucoseService.syncData();

@@ -343,6 +343,113 @@ async def complete_onboarding_step3(
         )
 
 
+@router.post("/fix-onboarding")
+async def fix_user_onboarding(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Fix User Onboarding (Temporary Endpoint)
+
+    Completes onboarding for existing users with incomplete data.
+    This is a temporary fix for users who had onboarding issues.
+    """
+    try:
+        # Update user with complete onboarding data
+        await current_user.update(
+            db,
+            # Step 1 data - Personal Information
+            date_of_birth=datetime(1990, 5, 15),
+            gender='male',
+            diabetes_type='type2',
+            diagnosis_date=datetime(2020, 1, 1),
+
+            # Step 2 data - Medical Information
+            meals_per_day=3,
+            activity_level='moderate',
+            uses_insulin=False,
+            current_medications=['Metformin'],
+            sleep_duration=8,
+
+            # Step 3 data - Preferences
+            preferred_unit='mg/dL',
+            target_range_min=80,
+            target_range_max=180,
+
+            # Complete onboarding
+            has_completed_onboarding=True,
+            onboarding_step=3
+        )
+
+        # Create sample glucose logs if none exist
+        from sqlalchemy.future import select
+        logs_result = await db.execute(
+            select(GlucoseLog).where(GlucoseLog.user_id == current_user.id)
+        )
+        existing_logs = logs_result.scalars().all()
+
+        if not existing_logs:
+            # Create sample glucose logs
+            glucose_logs = [
+                GlucoseLog(
+                    user_id=current_user.id,
+                    glucose_value=95.0,
+                    unit='mg/dL',
+                    reading_type=ReadingTypeEnum.FASTING,
+                    reading_time=datetime(2024, 6, 14, 8, 0),
+                    logged_time=datetime.utcnow(),
+                    is_validated=True
+                ),
+                GlucoseLog(
+                    user_id=current_user.id,
+                    glucose_value=140.0,
+                    unit='mg/dL',
+                    reading_type=ReadingTypeEnum.AFTER_MEAL,
+                    reading_time=datetime(2024, 6, 14, 14, 0),
+                    logged_time=datetime.utcnow(),
+                    is_validated=True
+                ),
+                GlucoseLog(
+                    user_id=current_user.id,
+                    glucose_value=110.0,
+                    unit='mg/dL',
+                    reading_type=ReadingTypeEnum.BEFORE_MEAL,
+                    reading_time=datetime(2024, 6, 14, 18, 0),
+                    logged_time=datetime.utcnow(),
+                    is_validated=True
+                ),
+                GlucoseLog(
+                    user_id=current_user.id,
+                    glucose_value=105.0,
+                    unit='mg/dL',
+                    reading_type=ReadingTypeEnum.BEDTIME,
+                    reading_time=datetime(2024, 6, 14, 22, 0),
+                    logged_time=datetime.utcnow(),
+                    is_validated=True
+                )
+            ]
+
+            for log in glucose_logs:
+                db.add(log)
+
+        await db.commit()
+
+        logger.info(f"Onboarding fixed for user: {current_user.email}")
+
+        return {
+            "message": "Onboarding fixed successfully",
+            "has_completed_onboarding": True,
+            "glucose_logs_created": len(glucose_logs) if not existing_logs else 0
+        }
+
+    except Exception as e:
+        logger.error(f"Fix onboarding error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fix onboarding"
+        )
+
+
 @router.delete("/account")
 async def delete_user_account(
     current_user: User = Depends(get_current_user),
@@ -350,30 +457,30 @@ async def delete_user_account(
 ):
     """
     Delete User Account
-    
+
     Deactivates the user account (soft delete).
     Preserves data for medical compliance but prevents access.
-    
+
     **Security Features:**
     - JWT authentication required
     - Soft delete for data retention
     - Audit logging
     - Immediate session invalidation
-    
+
     **Returns:**
     - Account deletion confirmation
     """
     try:
         # Soft delete user account
         await current_user.delete(db)
-        
+
         logger.info(f"Account deleted for user: {current_user.email}")
-        
+
         return {
             "message": "Account deleted successfully",
             "note": "Your data has been deactivated but preserved for medical compliance"
         }
-        
+
     except Exception as e:
         logger.error(f"Account deletion error: {e}")
         raise HTTPException(

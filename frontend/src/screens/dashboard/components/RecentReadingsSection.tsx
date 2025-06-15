@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Button } from '../../../components/ui';
+import { GlucoseReading } from '../../../services/dashboard/dashboardService';
 
 /**
  * RecentReadingsSection - Display recent glucose readings with navigation
@@ -19,13 +20,6 @@ import { Button } from '../../../components/ui';
  * - onAddReading: Function to handle "Add Reading" action
  */
 
-interface GlucoseReading {
-  id: string;
-  value: number;
-  time: string;
-  status: 'normal' | 'high' | 'low';
-}
-
 interface RecentReadingsSectionProps {
   recentReadings?: GlucoseReading[];
   onViewAll?: () => void;
@@ -39,12 +33,41 @@ export default function RecentReadingsSection({
 }: RecentReadingsSectionProps) {
   // Default mock data - will be replaced with real data from props
   const defaultReadings: GlucoseReading[] = [
-    { id: '1', value: 125, time: '2:30 PM', status: 'normal' },
-    { id: '2', value: 110, time: '10:15 AM', status: 'normal' },
-    { id: '3', value: 95, time: '7:00 AM', status: 'normal' },
+    {
+      id: '1',
+      value: 125,
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      timeOfDay: 'after_meal',
+      status: 'normal'
+    },
+    {
+      id: '2',
+      value: 110,
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      timeOfDay: 'before_meal',
+      status: 'normal'
+    },
+    {
+      id: '3',
+      value: 95,
+      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+      timeOfDay: 'fasting',
+      status: 'normal'
+    },
   ];
 
   const readings = recentReadings || defaultReadings;
+
+  // Get time ago string
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours === 1) return '1 hour ago';
+    return `${diffInHours} hours ago`;
+  };
 
   // Get status color based on glucose level
   const getStatusColor = (status: string) => {
@@ -89,7 +112,7 @@ export default function RecentReadingsSection({
                   {reading.value} mg/dL
                 </Text>
                 <Text className="text-textSecondary text-sm">
-                  {reading.time}
+                  {getTimeAgo(reading.timestamp)}
                 </Text>
               </View>
             </View>

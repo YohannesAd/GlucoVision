@@ -208,7 +208,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       if (state.user && state.token) {
         // Call backend to get updated user info after onboarding completion
-        const response = await fetch(`${API_BASE_URL}/users/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${state.token}`,

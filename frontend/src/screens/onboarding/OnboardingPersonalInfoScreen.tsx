@@ -4,6 +4,8 @@ import { Button } from '../../components/ui';
 import { OnboardingLayout, FieldPicker, OptionGrid, DatePicker } from '../../components/onboarding';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuth } from '../../context/AuthContext';
+import { onboardingService } from '../../services/onboarding/onboardingService';
 
 /**
  * OnboardingPersonalInfo1Screen - First step of onboarding
@@ -25,6 +27,8 @@ interface OnboardingPersonalInfo1ScreenProps {
 }
 
 export default function OnboardingPersonalInfo1Screen({ navigation }: OnboardingPersonalInfo1ScreenProps) {
+  const { state } = useAuth();
+
   // Form state
   const [dateOfBirth, setDateOfBirth] = useState({ day: '', month: '', year: '' });
   const [gender, setGender] = useState('');
@@ -60,18 +64,30 @@ export default function OnboardingPersonalInfo1Screen({ navigation }: Onboarding
   };
 
   // Handle form submission and navigation to next step
-  const handleNext = () => {
+  const handleNext = async () => {
     // Basic validation
     if (!dateOfBirth.day || !dateOfBirth.month || !dateOfBirth.year || !gender || !diabetesType || !diagnosedYear) {
       Alert.alert('Required Fields', 'Please fill in all required fields to continue.');
       return;
     }
 
-    // TODO: Save data to context or storage
-    // const personalInfo1 = { dateOfBirth, gender, diabetesType, diagnosedYear };
+    try {
+      // Prepare and submit onboarding data
+      const step1Data = {
+        dateOfBirth: `${dateOfBirth.year}-${dateOfBirth.month.padStart(2, '0')}-${dateOfBirth.day.padStart(2, '0')}`,
+        gender: gender.toLowerCase().replace(' ', '_'),
+        diabetesType: diabetesType.toLowerCase().replace(' ', ''),
+        diagnosisDate: `${diagnosedYear}-01-01`,
+      };
 
-    // Navigate to next onboarding step
-    navigation.navigate('OnboardingPersonalInfo2');
+      if (state.token) {
+        await onboardingService.submitStep1(step1Data, state.token);
+        navigation.navigate('OnboardingPersonalInfo2');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information. Please try again.');
+      console.error('Step 1 submission error:', error);
+    }
   };
 
   return (
