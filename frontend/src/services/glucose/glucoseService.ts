@@ -23,7 +23,7 @@ class GlucoseService {
         reading
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -47,7 +47,7 @@ class GlucoseService {
         { params }
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -66,7 +66,7 @@ class GlucoseService {
         ENDPOINTS.GLUCOSE.READING(id)
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -86,7 +86,7 @@ class GlucoseService {
         updates
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -101,11 +101,8 @@ class GlucoseService {
    */
   async deleteReading(id: string): Promise<void> {
     try {
-      const response = await apiClient.delete(ENDPOINTS.GLUCOSE.READING(id));
-
-      if (!response.success) {
-        throw new Error('Failed to delete glucose reading');
-      }
+      await apiClient.delete(ENDPOINTS.GLUCOSE.READING(id));
+      // FastAPI returns 204 No Content for successful deletes
     } catch (error) {
       throw this.handleGlucoseError(error);
     }
@@ -125,7 +122,7 @@ class GlucoseService {
         { params }
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -148,7 +145,7 @@ class GlucoseService {
         { params }
       );
 
-      if (response.success && response.data) {
+      if (response.data) {
         return response.data;
       }
 
@@ -167,9 +164,9 @@ class GlucoseService {
     format: 'csv' | 'pdf' | 'json';
   }): Promise<Blob> {
     try {
-      const response = await apiClient.get(
+      const response = await apiClient.get<Blob>(
         ENDPOINTS.GLUCOSE.EXPORT,
-        { 
+        {
           params,
           responseType: 'blob'
         }

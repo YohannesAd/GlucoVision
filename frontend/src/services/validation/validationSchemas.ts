@@ -37,8 +37,8 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     ),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   dateOfBirth: z
@@ -71,8 +71,8 @@ export const resetPasswordSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     ),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -124,8 +124,8 @@ export const changePasswordSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     ),
   confirmNewPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmNewPassword, {

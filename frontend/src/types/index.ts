@@ -13,6 +13,9 @@ export type RootStackParamList = {
   OnboardingPersonalInfo1: undefined;
   OnboardingPersonalInfo2: undefined;
   OnboardingPersonalInfo3: undefined;
+
+  // Main App Navigation
+  MainTabs: undefined;
   Dashboard: undefined;
   AddLog: undefined;
   ViewLogs: undefined;

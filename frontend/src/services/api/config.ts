@@ -57,9 +57,14 @@ export const ENDPOINTS = {
 
   // Glucose Data
   GLUCOSE: {
+    READINGS: '/api/v1/glucose/logs', // Alias for consistency
     LOGS: '/api/v1/glucose/logs',
+    READING: (id: string) => `/api/v1/glucose/logs/${id}`,
     LOG: (id: string) => `/api/v1/glucose/logs/${id}`,
     STATS: '/api/v1/glucose/stats',
+    STATISTICS: '/api/v1/glucose/stats', // Alias for consistency
+    TRENDS: '/api/v1/glucose/trends',
+    EXPORT: '/api/v1/glucose/export',
   },
 
   // AI Insights

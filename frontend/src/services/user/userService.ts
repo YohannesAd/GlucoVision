@@ -2,14 +2,8 @@
  * GlucoVision User Service
  * ========================
  * 
- * Professional service for user profile and onboarding data management.
+ * service for user profile and onboarding data management.
  * Handles user information retrieval, caching, and profile updates.
- * 
- * Features:
- * - User profile data fetching
- * - Onboarding information retrieval
- * - Profile caching for performance
- * - Clean error handling
  */
 
 import { API_BASE_URL } from '../api/config';
@@ -186,6 +180,4 @@ class UserService {
     return null;
   }
 }
-
-// Export singleton instance
 export const userService = new UserService();

@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
-import { Button } from '../ui';
+import { Button } from '../ui/index';
 import { API_CONFIG } from '../../services/api/config';
 
 export default function NetworkTest() {

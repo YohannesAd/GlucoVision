@@ -1,14 +1,12 @@
 /**
  * Password Toggle Demo Component
  * =============================
- * 
- * Demo component to showcase the password visibility toggle feature.
- * This can be used for testing and demonstration purposes.
+ 
  */
 
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
-import FormInput from './FormInput';
+import { FormInput } from '../ui/index';
 
 export default function PasswordToggleDemo() {
   const [password, setPassword] = useState('');

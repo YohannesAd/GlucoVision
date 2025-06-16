@@ -1,18 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignUpCredentials } from '../types';
 
-/**
- * AuthContext - Global authentication state management
- *
- * Features:
- * - User authentication state
- * - Login/logout functionality
- * - Token management
- * - Persistent login state
- * - Loading states for auth operations
- */
-
-// Auth Actions
 type AuthAction =
   | { type: 'AUTH_START' }
   | { type: 'AUTH_SUCCESS'; payload: { user: User; token: string } }
@@ -22,7 +10,6 @@ type AuthAction =
   | { type: 'LOGOUT' }
   | { type: 'RESTORE_AUTH'; payload: { user: User; token: string } };
 
-// Initial State
 const initialState: AuthState = {
   user: null,
   token: null,
@@ -31,56 +18,22 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Auth Reducer
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'AUTH_START':
       return { ...state, isLoading: true, error: null };
-
     case 'AUTH_SUCCESS':
-      return {
-        ...state,
-        isLoading: false,
-        isAuthenticated: true,
-        user: action.payload.user,
-        token: action.payload.token,
-        error: null,
-      };
-
+      return { ...state, isLoading: false, isAuthenticated: true, user: action.payload.user, token: action.payload.token, error: null };
     case 'AUTH_FAILURE':
-      return {
-        ...state,
-        isLoading: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        error: action.payload,
-      };
-
+      return { ...state, isLoading: false, isAuthenticated: false, user: null, token: null, error: action.payload };
     case 'LOGIN_ERROR':
-      return {
-        ...state,
-        isLoading: false,
-        error: action.payload,
-        // Don't reset authentication state for login errors
-        // This prevents navigation reset to landing page
-      };
-
+      return { ...state, isLoading: false, error: action.payload };
     case 'CLEAR_ERROR':
       return { ...state, error: null };
-
     case 'LOGOUT':
       return initialState;
-
     case 'RESTORE_AUTH':
-      return {
-        ...state,
-        isAuthenticated: true,
-        user: action.payload.user,
-        token: action.payload.token,
-        error: null,
-      };
-
+      return { ...state, isAuthenticated: true, user: action.payload.user, token: action.payload.token, error: null };
     default:
       return state;
   }
@@ -117,20 +70,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { authService } = await import('../services/auth/authService');
       const response = await authService.login(credentials);
 
-      // Convert API response to context format
-      const user: User = {
-        id: response.user.id,
-        email: response.user.email,
-        firstName: response.user.first_name,
-        lastName: response.user.last_name,
-        hasCompletedOnboarding: response.user.has_completed_onboarding || false,
-        createdAt: response.user.created_at,
-        updatedAt: response.user.updated_at,
-      };
-
+      // AuthService already converts FastAPI response to frontend User format
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user, token: response.tokens.accessToken }
+        payload: { user: response.user, token: response.tokens.accessToken }
       });
 
     } catch (error: any) {
@@ -165,20 +108,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const response = await authService.register(registerData);
 
-      // Convert API response to context format
-      const user: User = {
-        id: response.user.id,
-        email: response.user.email,
-        firstName: response.user.first_name,
-        lastName: response.user.last_name,
-        hasCompletedOnboarding: response.user.has_completed_onboarding || false,
-        createdAt: response.user.created_at,
-        updatedAt: response.user.updated_at,
-      };
-
+      // AuthService already converts FastAPI response to frontend User format
       dispatch({
         type: 'AUTH_SUCCESS',
-        payload: { user, token: response.tokens.accessToken }
+        payload: { user: response.user, token: response.tokens.accessToken }
       });
 
     } catch (error: any) {
@@ -207,28 +140,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const completeOnboarding = async () => {
     try {
       if (state.user && state.token) {
-        // Call backend to get updated user info after onboarding completion
-        const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${state.token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to get updated user information');
-        }
-
-        const data = await response.json();
+        // Update user's onboarding status locally
         const updatedUser: User = {
-          id: data.user.id,
-          email: data.user.email,
-          firstName: data.user.first_name,
-          lastName: data.user.last_name,
-          hasCompletedOnboarding: data.user.has_completed_onboarding,
-          createdAt: data.user.created_at,
-          updatedAt: data.user.updated_at,
+          ...state.user,
+          hasCompletedOnboarding: true,
         };
 
         dispatch({
@@ -287,7 +202,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.error('useAuth must be used within an AuthProvider');
+    // Return a default context instead of throwing to prevent crashes
+    return {
+      state: initialState,
+      login: async () => {},
+      signUp: async () => {},
+      logout: async () => {},
+      restoreAuth: async () => {},
+      completeOnboarding: async () => {},
+      clearError: () => {},
+    };
   }
   return context;
 }

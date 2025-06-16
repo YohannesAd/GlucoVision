@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { TodayStats, WeeklyTrend } from '../../../services/dashboard/dashboardService';
+import StatsCard from '../cards/StatsCard';
+import TrendIndicator from '../indicators/TrendIndicator';
 
 /**
  * OverviewCardsSection - Today's glucose overview with visual indicators
@@ -81,39 +83,42 @@ export default function OverviewCardsSection({ todayStats, weeklyTrend }: Overvi
       
       <View className="flex-row space-x-3 mb-4">
         {/* Latest Reading Card */}
-        <View className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <Text className="text-textSecondary text-xs uppercase tracking-wide mb-2">
-            Latest Reading
-          </Text>
-          <Text className="text-2xl font-bold text-darkBlue">
-            {stats.latestReading?.value || '--'}
-          </Text>
-          <Text className="text-textSecondary text-xs">
-            mg/dL • {stats.latestReading ? getTimeAgo(stats.latestReading.timestamp) : 'No data'}
-          </Text>
-          <View className="flex-row items-center mt-2">
-            <View className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(stats.latestReading?.status || 'normal')}`} />
-            <Text className="text-success text-xs font-medium">
-              {stats.timeInRange}% in range
-            </Text>
+        <View className="flex-1 bg-white rounded-lg shadow-sm border border-gray-100">
+          <StatsCard
+            title="Latest Reading"
+            value={stats.latestReading?.value || '--'}
+            subtitle={`mg/dL • ${stats.latestReading ? getTimeAgo(stats.latestReading.timestamp) : 'No data'}`}
+            color={stats.latestReading?.status === 'normal' ? 'green' :
+                   stats.latestReading?.status === 'high' ? 'yellow' :
+                   stats.latestReading?.status === 'low' ? 'red' : 'gray'}
+            size="medium"
+          />
+          <View className="px-4 pb-4">
+            <View className="flex-row items-center">
+              <View className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(stats.latestReading?.status || 'normal')}`} />
+              <Text className="text-success text-xs font-medium">
+                {stats.timeInRange}% in range
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* Daily Average Card */}
-        <View className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-          <Text className="text-textSecondary text-xs uppercase tracking-wide mb-2">
-            Today's Average
-          </Text>
-          <Text className="text-2xl font-bold text-darkBlue">
-            {stats.average}
-          </Text>
-          <Text className="text-textSecondary text-xs">
-            mg/dL • {stats.readingsCount} readings
-          </Text>
-          <View className="flex-row items-center mt-2">
-            <Text className={`text-xs font-medium ${trend.direction === 'improving' ? 'text-success' : trend.direction === 'declining' ? 'text-error' : 'text-textSecondary'}`}>
-              {trend.direction === 'improving' ? '↗' : trend.direction === 'declining' ? '↘' : '→'} {Math.abs(trend.percentage)}% vs last week
-            </Text>
+        <View className="flex-1 bg-white rounded-lg shadow-sm border border-gray-100">
+          <StatsCard
+            title="Today's Average"
+            value={stats.average}
+            subtitle={`mg/dL • ${stats.readingsCount} readings`}
+            color="primary"
+            size="medium"
+          />
+          <View className="px-4 pb-4">
+            <TrendIndicator
+              direction={trend.direction}
+              percentage={trend.percentage}
+              label="vs last week"
+              size="small"
+            />
           </View>
         </View>
       </View>

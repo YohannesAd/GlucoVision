@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useUser } from '../../../context/UserContext';
+import { useAppState } from '../../../hooks';
 
 /**
  * DashboardHeader - Header section with personalized greeting and hamburger menu
@@ -21,8 +21,8 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ onMenuPress }: DashboardHeaderProps) {
-  const { state } = useUser();
-  const user = state.profile;
+  const { auth } = useAppState();
+  const userData = auth?.state?.user;
 
   // Get current date in readable format
   const getCurrentDate = () => {
@@ -49,7 +49,7 @@ export default function DashboardHeader({ onMenuPress }: DashboardHeaderProps) {
         {/* Left side - Greeting */}
         <View className="flex-1">
           <Text className="text-2xl font-bold text-darkBlue">
-            {getGreeting()}, {user?.firstName || 'User'}!
+            {getGreeting()}, {userData?.firstName || 'User'}!
           </Text>
           <Text className="text-textSecondary text-base mt-1">
             {getCurrentDate()}

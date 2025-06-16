@@ -6,13 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 
 /**
- * ResetPasswordSuccessScreen - Step 4 of password reset flow
- *
- * Features:
- * - Success confirmation message
- * - Account security information
- * - Navigation back to login
- * - Professional completion design
+ * ResetPasswordSuccessScreen 
  */
 
 type ResetPasswordSuccessScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ResetPasswordSuccess'>;

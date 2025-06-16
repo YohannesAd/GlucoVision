@@ -2,8 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-
-// Import Navigators
 import AuthNavigator from './AuthNavigator';
 import OnboardingNavigator from './OnboardingNavigator';
 import MainNavigator from './MainNavigator';
@@ -18,12 +16,7 @@ import MainNavigator from './MainNavigator';
  * Navigation Flow:
  * 1. Not authenticated → AuthNavigator (Landing, Login, SignUp)
  * 2. Authenticated but not onboarded → OnboardingNavigator (3-step onboarding)
- * 3. Authenticated and onboarded → MainNavigator (Dashboard and main app)
- * 
- * Features:
- * - Automatic navigation based on user state
- * - Persistent authentication state
- * - Smooth transitions between navigation stacks
+ * 3. Authenticated and onboarded → MainNavigator (Dashboard and main app)s
  */
 
 export default function RootNavigator() {

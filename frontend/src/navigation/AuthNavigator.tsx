@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 
-// Auth Screens
 import LandingScreen from '../screens/Landing/LandingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
@@ -10,20 +9,6 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import VerifyResetCodeScreen from '../screens/auth/VerifyResetCodeScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 import ResetPasswordSuccessScreen from '../screens/auth/ResetPasswordSuccessScreen';
-
-/**
- * AuthNavigator - Navigation stack for unauthenticated users
- * 
- * Screens included:
- * - Landing: App introduction
- * - Login: User authentication
- * - SignUp: User registration
- * 
- * Features:
- * - No header shown for clean UI
- * - Gesture navigation enabled
- * - Landing screen prevents swipe back
- */
 
 const AuthStack = createNativeStackNavigator<RootStackParamList>();
 
@@ -41,7 +26,7 @@ export default function AuthNavigator() {
         name="Landing"
         component={LandingScreen}
         options={{
-          gestureEnabled: false, // Prevent swipe back on landing
+          gestureEnabled: false,
         }}
       />
       <AuthStack.Screen

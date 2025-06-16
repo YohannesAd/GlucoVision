@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
-import { ScreenContainer, ScreenHeader, ProgressIndicator } from '../ui';
+import ScreenContainer from './ScreenContainer';
+import ScreenHeader from './ScreenHeader';
+import ProgressIndicator from '../indicators/ProgressIndicator';
 
 /**
  * OnboardingLayout - Shared layout for all onboarding screens

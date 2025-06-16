@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Button } from '../../../components/ui';
+import Button from '../buttons/Button';
 
 /**
  * PDFExportSection - PDF report generation options

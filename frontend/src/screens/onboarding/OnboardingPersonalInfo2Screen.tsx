@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { Button, FormInput } from '../../components/ui';
-import { OnboardingLayout, FieldPicker, OptionGrid } from '../../components/onboarding';
+import { View, Text } from 'react-native';
+import { Button, FormInput, OnboardingLayout, FieldPicker, OptionGrid, FormError } from '../../components/ui';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuth } from '../../context/AuthContext';
-import { onboardingService } from '../../services/onboarding/onboardingService';
+import { useAppState, useFormSubmission, useFormValidation, VALIDATION_RULES } from '../../hooks';
+import { FORM_OPTIONS } from '../../constants/formOptions';
 
 /**
  * OnboardingPersonalInfo2Screen - Second step of onboarding
- *
- * Collects lifestyle and medical information:
- * - Typical meals per day (1-5+)
- * - Physical activity level (Sedentary, Light, Moderate, Active)
- * - Insulin usage (Yes/No with optional follow-up)
- * - Medications (optional text input)
- * - Sleep duration (number input in hours)
- *
  * This information helps personalize recommendations and understand
  * the user's daily routine and medical management.
  */
@@ -28,97 +19,83 @@ interface OnboardingPersonalInfo2ScreenProps {
 }
 
 export default function OnboardingPersonalInfo2Screen({ navigation }: OnboardingPersonalInfo2ScreenProps) {
-  const { state } = useAuth();
-
-  // Form state
-  const [mealsPerDay, setMealsPerDay] = useState('');
-  const [activityLevel, setActivityLevel] = useState('');
+  // Use our powerful new hooks
+  const { auth, user } = useAppState();
   const [takesInsulin, setTakesInsulin] = useState<boolean | null>(null);
-  const [insulinType, setInsulinType] = useState('');
-  const [currentMedications, setCurrentMedications] = useState('');
-  const [sleepDuration, setSleepDuration] = useState('');
 
-  // Options data
-  const mealsOptions = [
-    { value: '1', label: '1 meal' },
-    { value: '2', label: '2 meals' },
-    { value: '3', label: '3 meals' },
-    { value: '4', label: '4 meals' },
-    { value: '5', label: '5 meals' },
-    { value: '5+', label: '5+ meals' },
-  ];
+  const { values, isValid, setValue, validateAll } = useFormValidation({
+    rules: VALIDATION_RULES.onboardingStep2,
+    initialValues: {
+      mealsPerDay: '',
+      activityLevel: '',
+      insulinType: '',
+      currentMedications: '',
+      sleepDuration: ''
+    }
+  });
 
-  const activityOptions = [
-    { value: 'Sedentary', label: 'Sedentary' },
-    { value: 'Light', label: 'Light' },
-    { value: 'Moderate', label: 'Moderate' },
-    { value: 'Active', label: 'Active' },
-  ];
 
-  const insulinOptions = [
-    { value: 'true', label: 'Yes' },
-    { value: 'false', label: 'No' },
-  ];
 
-  const insulinTypeOptions = [
-    { value: 'Rapid-acting', label: 'Rapid-acting' },
-    { value: 'Long-acting', label: 'Long-acting' },
-    { value: 'Both', label: 'Both types' },
-    { value: 'Other', label: 'Other' },
-  ];
+  // Form submission
+  const { isLoading, error, handleSubmit } = useFormSubmission({
+    onSubmit: async (formData) => {
+      if (!validateAll() || takesInsulin === null) {
+        throw new Error('Please fill in all required fields to continue');
+      }
 
-  const sleepOptions = [
-    { value: '4', label: '4 hours' },
-    { value: '5', label: '5 hours' },
-    { value: '6', label: '6 hours' },
-    { value: '7', label: '7 hours' },
-    { value: '8', label: '8 hours' },
-    { value: '9', label: '9 hours' },
-    { value: '10', label: '10 hours' },
-    { value: '11', label: '11 hours' },
-    { value: '12', label: '12+ hours' },
-  ];
+      // Map frontend activity values to backend enum values
+      const activityMapping: Record<string, string> = {
+        'Sedentary': 'low',
+        'Light': 'low',
+        'Moderate': 'moderate',
+        'Active': 'high'
+      };
+
+      // Handle meals per day (convert "5+" to 6)
+      const mealsPerDay = values.mealsPerDay === '5+' ? 6 : parseInt(values.mealsPerDay);
+
+      // Handle sleep duration (convert "12+ hours" to 12)
+      const sleepDuration = values.sleepDuration === '12' ? 12 : parseInt(values.sleepDuration);
+
+      const step2Data = {
+        meals_per_day: mealsPerDay,
+        activity_level: activityMapping[values.activityLevel] || 'moderate',
+        uses_insulin: takesInsulin,
+        current_medications: values.currentMedications ? [values.currentMedications] : [],
+        sleep_duration: sleepDuration,
+      };
+
+      // Debug logging
+      console.log('Step 2 Data being sent:', step2Data);
+      console.log('Original form values:', values);
+      console.log('Takes insulin:', takesInsulin);
+
+      if (!auth?.state?.token || !user?.actions) {
+        throw new Error('Authentication required');
+      }
+
+      const result = await user.actions.updateOnboardingStep2(step2Data);
+
+      // Debug logging
+      console.log('Step 2 API Result:', result);
+
+      if (!result.success) {
+        const errorMessage = typeof result.error === 'string'
+          ? result.error
+          : result.error?.message || result.error?.detail || 'Failed to save information';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => navigation.navigate('OnboardingPersonalInfo3'),
+    successMessage: 'Lifestyle information saved!',
+    showSuccessAlert: false
+  });
 
   // Handle insulin selection
   const handleInsulinSelect = (value: string) => {
     const boolValue = value === 'true';
     setTakesInsulin(boolValue);
-    if (!boolValue) {
-      setInsulinType(''); // Clear insulin type if not taking insulin
-    }
-  };
-
-  // Handle form submission and navigation to next step
-  const handleNext = async () => {
-    // Basic validation
-    if (!mealsPerDay || !activityLevel || takesInsulin === null || !sleepDuration) {
-      Alert.alert('Required Fields', 'Please fill in all required fields to continue.');
-      return;
-    }
-
-    try {
-      // Prepare and submit step 2 data
-      const step2Data = {
-        mealsPerDay: parseInt(mealsPerDay),
-        activityLevel: activityLevel.toLowerCase(),
-        usesInsulin: takesInsulin,
-        currentMedications: currentMedications ? [currentMedications] : [],
-        sleepDuration: parseInt(sleepDuration),
-      };
-
-      if (state.token) {
-        await onboardingService.submitStep2(step2Data, state.token);
-        navigation.navigate('OnboardingPersonalInfo3');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save information. Please try again.');
-      console.error('Step 2 submission error:', error);
-    }
-  };
-
-  // Handle back navigation
-  const handleBack = () => {
-    navigation.goBack();
+    if (!boolValue) setValue('insulinType', '');
   };
 
   return (
@@ -130,28 +107,31 @@ export default function OnboardingPersonalInfo2Screen({ navigation }: Onboarding
     >
       {/* Lifestyle Information Form */}
       <View className="mb-6">
+        {/* Error Message */}
+        <FormError error={error} />
+
         {/* Typical Meals Per Day */}
         <OptionGrid
           label="Typical Meals Per Day *"
-          options={mealsOptions}
-          selectedValue={mealsPerDay}
-          onSelect={setMealsPerDay}
+          options={FORM_OPTIONS.meals}
+          selectedValue={values.mealsPerDay}
+          onSelect={(value) => setValue('mealsPerDay', value)}
           columns={3}
         />
 
         {/* Physical Activity Level */}
         <OptionGrid
           label="Physical Activity Level *"
-          options={activityOptions}
-          selectedValue={activityLevel}
-          onSelect={setActivityLevel}
+          options={FORM_OPTIONS.activity}
+          selectedValue={values.activityLevel}
+          onSelect={(value) => setValue('activityLevel', value)}
           columns={2}
         />
 
         {/* Do You Use Insulin Question */}
         <OptionGrid
           label="Do You Use Insulin? *"
-          options={insulinOptions}
+          options={FORM_OPTIONS.insulin}
           selectedValue={takesInsulin?.toString() || ''}
           onSelect={handleInsulinSelect}
           columns={2}
@@ -161,50 +141,49 @@ export default function OnboardingPersonalInfo2Screen({ navigation }: Onboarding
         {takesInsulin && (
           <OptionGrid
             label="Which type of insulin?"
-            options={insulinTypeOptions}
-            selectedValue={insulinType}
-            onSelect={setInsulinType}
+            options={FORM_OPTIONS.insulinType}
+            selectedValue={values.insulinType}
+            onSelect={(value) => setValue('insulinType', value)}
             columns={2}
           />
         )}
 
         {/* Current Medications */}
-        <View className="mb-6">
-          <FormInput
-            label="Medications"
-            placeholder="(Optional) List your current medications"
-            value={currentMedications}
-            onChangeText={setCurrentMedications}
-            multiline
-            numberOfLines={3}
-            containerClassName="mb-0"
-          />
-        </View>
+        <FormInput
+          label="Medications"
+          placeholder="(Optional) List your current medications"
+          value={values.currentMedications}
+          onChangeText={(text) => setValue('currentMedications', text)}
+          multiline
+          numberOfLines={3}
+          containerClassName="mb-6"
+        />
 
         {/* Sleep Duration */}
         <FieldPicker
           label="Sleep Duration (avg) *"
           subtitle="Hours per night"
           placeholder="Select sleep duration"
-          value={sleepDuration}
-          options={sleepOptions}
-          onSelect={setSleepDuration}
+          value={values.sleepDuration}
+          options={FORM_OPTIONS.sleep}
+          onSelect={(value) => setValue('sleepDuration', value)}
         />
 
         {/* Navigation Buttons */}
         <View className="flex-row gap-3 mt-4">
           <Button
             title="Back"
-            onPress={handleBack}
+            onPress={() => navigation.goBack()}
             variant="outline"
             size="large"
             style={{ flex: 1 }}
           />
           <Button
-            title="Continue"
-            onPress={handleNext}
+            title={isLoading ? "Saving..." : "Continue"}
+            onPress={() => handleSubmit({ ...values, takesInsulin })}
             variant="primary"
             size="large"
+            disabled={isLoading || !isValid || takesInsulin === null}
             style={{ flex: 1 }}
           />
         </View>

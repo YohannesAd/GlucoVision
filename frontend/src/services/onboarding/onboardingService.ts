@@ -4,12 +4,6 @@
  * 
  * Professional service for handling user onboarding process.
  * Manages the 3-step onboarding flow with backend integration.
- * 
- * Features:
- * - Step-by-step onboarding data submission
- * - Backend API integration
- * - Error handling and validation
- * - Onboarding status tracking
  */
 
 import { API_BASE_URL } from '../api/config';
@@ -228,10 +222,10 @@ class OnboardingService {
 
       const defaultStep3: OnboardingStep3Data = {
         glucoseReadings: [
-          { value: 100, timeOfDay: 'Fasting' },
-          { value: 120, timeOfDay: 'Before Meal' },
-          { value: 140, timeOfDay: 'After Meal' },
-          { value: 110, timeOfDay: 'Bedtime' },
+          { value: 100, timeOfDay: 'fasting' },
+          { value: 120, timeOfDay: 'before_meal' },
+          { value: 140, timeOfDay: 'after_meal' },
+          { value: 110, timeOfDay: 'bedtime' },
         ],
         preferredUnit: 'mg/dL',
         targetRangeMin: 80,

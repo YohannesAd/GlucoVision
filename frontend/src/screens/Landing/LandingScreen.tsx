@@ -5,14 +5,7 @@ import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /**
- * LandingScreen - App introduction and onboarding entry point
- *
- * Features:
- * - App branding (logo, name, tagline)
- * - Key feature highlights with icons
- * - Call-to-action button to start user journey
- * - Fixed layout that fits all screen sizes
- * - Consistent UI using shared components
+ * LandingScreen - App introduction 
  */
 
 type LandingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Landing'>;

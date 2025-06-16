@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Button } from '../../../components/ui';
+import Button from '../buttons/Button';
 import { AIInsight } from '../../../types';
 import { useUser } from '../../../context/UserContext';
 
@@ -35,19 +35,22 @@ export default function AIInsightsSection({
   onAskAI,
   onViewDetails
 }: AIInsightsSectionProps) {
-  const { state } = useUser();
-  const userProfile = state.profile;
+  const userContext = useUser();
+  const userProfile = userContext?.state?.profile || null;
 
   // Default mock data with personalization based on user profile
   const defaultInsight: AIInsight = {
+    id: 'default-insight',
     type: 'recommendation',
     title: `${userProfile?.firstName || 'Your'} glucose levels are trending well`,
     message: `Based on your ${userProfile?.diabetesType || 'diabetes'} management and recent readings, your glucose control has improved by 15% this week. Keep up the great work with your current routine!`,
     confidence: 92,
     severity: 'positive',
+    actionable: true,
     recommendation: userProfile?.usesInsulin
       ? 'Continue your current insulin timing and consider adding a 10-minute walk after lunch.'
       : 'Continue your current meal timing and consider adding a 10-minute walk after lunch.',
+    createdAt: new Date().toISOString(),
   };
 
   const insight = aiInsight || defaultInsight;

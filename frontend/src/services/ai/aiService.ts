@@ -2,15 +2,9 @@
  * GlucoVision AI Service
  * ======================
  * 
- * Professional AI service for real-time glucose insights and recommendations.
+ *AI service for real-time glucose insights and recommendations.
  * Integrates with backend AI endpoints to provide personalized diabetes management.
- * 
- * Features:
- * - Real-time AI insights and recommendations
- * - Trend analysis and pattern recognition
- * - Personalized recommendations based on user data
- * - Risk assessment and alerts
- * - Professional medical-grade AI analysis
+
  */
 
 import { API_BASE_URL } from '../api/config';

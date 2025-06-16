@@ -59,13 +59,17 @@ class Settings(BaseSettings):
     # Use SQLite in development if PostgreSQL not available
     USE_SQLITE: bool = Field(default=False, env="USE_SQLITE")
     
-    # CORS Settings
+    # CORS Settings - Allow React Native development
     CORS_ORIGINS: List[str] = Field(
         default=[
             "http://localhost:3000",
-            "http://localhost:8081",  # Expo default
-            "http://localhost:19006", # Expo web
-            "exp://localhost:19000",  # Expo app
+            "http://localhost:8081",     # Expo default
+            "http://localhost:19006",    # Expo web
+            "exp://localhost:19000",     # Expo app
+            "http://10.0.0.226:*",       # Your computer's IP
+            "http://192.168.*.*:*",      # Local network ranges
+            "http://10.0.*.*:*",         # Local network ranges
+            "*",                         # Allow all origins in development
         ],
         env="CORS_ORIGINS"
     )

@@ -54,9 +54,6 @@ class StorageService {
       // For now, using AsyncStorage - replace with secure storage in production
       await AsyncStorage.setItem(this.getSecureKey(key), value);
       
-      // TODO: Replace with actual secure storage implementation:
-      // import * as Keychain from 'react-native-keychain';
-      // await Keychain.setInternetCredentials(key, key, value);
     } catch (error) {
       console.error('Error storing secure item:', error);
       throw new Error('Failed to store secure data');
@@ -71,10 +68,6 @@ class StorageService {
       // For now, using AsyncStorage - replace with secure storage in production
       return await AsyncStorage.getItem(this.getSecureKey(key));
       
-      // TODO: Replace with actual secure storage implementation:
-      // import * as Keychain from 'react-native-keychain';
-      // const credentials = await Keychain.getInternetCredentials(key);
-      // return credentials ? credentials.password : null;
     } catch (error) {
       console.error('Error getting secure item:', error);
       return null;
@@ -88,10 +81,6 @@ class StorageService {
     try {
       // For now, using AsyncStorage - replace with secure storage in production
       await AsyncStorage.removeItem(this.getSecureKey(key));
-      
-      // TODO: Replace with actual secure storage implementation:
-      // import * as Keychain from 'react-native-keychain';
-      // await Keychain.resetInternetCredentials(key);
     } catch (error) {
       console.error('Error removing secure item:', error);
       throw new Error('Failed to remove secure data');
@@ -198,14 +187,10 @@ class StorageService {
     return `${this.PREFIX}${key}`;
   }
 
-  /**
-   * Generate prefixed secure key
-   */
   private getSecureKey(key: string): string {
     return `${this.PREFIX}secure_${key}`;
   }
 }
 
-// Export singleton instance
 export const storageService = new StorageService();
 export default storageService;

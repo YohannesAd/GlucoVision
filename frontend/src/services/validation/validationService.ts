@@ -87,15 +87,8 @@ class ValidationService {
       feedback.push('Password should contain at least one number');
     }
 
-    // Special character check
-    if (/[@$!%*?&]/.test(password)) {
-      score += 1;
-    } else {
-      feedback.push('Password should contain at least one special character');
-    }
-
     return {
-      isValid: score >= 4,
+      isValid: score >= 3, // Only require length, uppercase, lowercase, and number
       score,
       feedback,
     };

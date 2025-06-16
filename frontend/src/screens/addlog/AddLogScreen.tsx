@@ -1,29 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Platform } from 'react-native';
+import { ScrollView, View, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { RootStackParamList, GlucoseLog } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import { useGlucose } from '../../context/GlucoseContext';
-import { ScreenContainer, FormInput, Button } from '../../components/ui';
+import { RootStackParamList } from '../../types';
+import {
+  ScreenContainer,
+  ScreenHeader,
+  FormInput,
+  ValuePicker,
+  OptionGrid,
+  DateTimePicker,
+  Button,
+  FormError
+} from '../../components/ui';
+import { useAppState, useFormSubmission, useFormValidation, VALIDATION_RULES } from '../../hooks';
+import { FORM_OPTIONS, generateGlucoseOptions } from '../../constants/formOptions';
 
 /**
- * AddLogScreen - Add new glucose reading
- * 
- * Features:
- * - Glucose value input with picker (avoiding input field issues)
- * - Meal context selection (fasting, before meal, after meal, bedtime)
- * - Date and time selection (defaults to current)
- * - Optional notes field
- * - Unit preference from user settings
- * - Form validation and error handling
- * - Integration with GlucoseContext for data persistence
- * - Professional medical app design
- * 
- * Accessible from:
- * - Hamburger menu "Add Log"
- * - Dashboard "Add Blood Sugar Reading" button
- * - Recent readings "Add New Reading" button
+ * Add blood sugar readingScreen 
  */
 
 type AddLogScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddLog'>;
@@ -33,275 +26,130 @@ interface AddLogScreenProps {
 }
 
 export default function AddLogScreen({ navigation }: AddLogScreenProps) {
-  const { state } = useAuth();
-  const { user, token } = state;
-  const { addLog } = useGlucose();
-
-  // Form state
-  const [glucoseValue, setGlucoseValue] = useState('');
-  const [mealContext, setMealContext] = useState('');
+  const { auth, glucose, user } = useAppState();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [notes, setNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const glucoseUnit = user?.state?.profile?.preferences?.glucoseUnit || 'mg/dL';
 
-  // Modal states
-  const [showValuePicker, setShowValuePicker] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Get user's preferred glucose unit
-  const glucoseUnit = user?.preferences?.glucoseUnit || 'mg/dL';
-
-  // Glucose value options (mg/dL) - same as onboarding
-  const glucoseOptions = [];
-  for (let i = 50; i <= 500; i += 5) {
-    glucoseOptions.push({ value: i.toString(), label: `${i} mg/dL` });
-  }
-
-  // Meal context options
-  const mealContextOptions = [
-    { value: 'fasting', label: 'Fasting' },
-    { value: 'before_meal', label: 'Before Meal' },
-    { value: 'after_meal', label: 'After Meal' },
-    { value: 'bedtime', label: 'Bedtime' },
-    { value: 'random', label: 'Random' },
-  ];
-
-  // Handle glucose value selection
-  const handleValueSelect = (value: string) => {
-    setGlucoseValue(value);
-    setShowValuePicker(false);
-  };
-
-  // Handle meal context selection
-  const handleMealContextSelect = (context: string) => {
-    setMealContext(context);
-  };
-
-  // Format date for display
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  // Format time for display
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  // Validate form
-  const validateForm = () => {
-    if (!glucoseValue) {
-      Alert.alert('Required Field', 'Please select a glucose value.');
-      return false;
+  const { values, errors, isValid, setValue, validateAll, resetForm } = useFormValidation({
+    rules: VALIDATION_RULES.glucoseLog,
+    initialValues: {
+      value: '',
+      logType: '',
+      notes: ''
     }
-    if (!mealContext) {
-      Alert.alert('Required Field', 'Please select when this reading was taken.');
-      return false;
-    }
-    return true;
-  };
+  });
+  const { isLoading, error, handleSubmit } = useFormSubmission({
+    onSubmit: async () => {
+      if (!validateAll()) {
+        throw new Error('Please fix validation errors');
+      }
 
-  // Handle form submission
-  const handleSaveLog = async () => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    try {
-      // Create new glucose log
-      const newLog: Omit<GlucoseLog, 'id' | 'createdAt'> = {
-        userId: user?.id || '',
-        value: parseInt(glucoseValue),
+      const logData = {
+        value: parseInt(values.value),
         unit: glucoseUnit,
-        logType: mealContext as 'fasting' | 'before_meal' | 'after_meal' | 'bedtime' | 'random',
-        notes: notes.trim() || undefined,
+        logType: values.logType,
+        notes: values.notes?.trim() || undefined,
         timestamp: selectedDate.toISOString(),
+        userId: auth?.state?.user?.id || ''
       };
 
-      // Save the log using GlucoseContext
-      if (!token) {
-        throw new Error('No authentication token');
+      if (!glucose?.actions?.addLog) {
+        throw new Error('Glucose service not available');
       }
-      await addLog(newLog, token);
 
-      setIsLoading(false);
+      const result = await glucose.actions.addLog(logData);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save glucose reading');
+      }
+    },
+    onSuccess: () => {
+      resetForm();
+      setSelectedDate(new Date());
+      navigation.goBack();
+    },
+    successMessage: 'Glucose reading saved successfully!',
+    showSuccessAlert: true
+  });
 
-      Alert.alert(
-        'Success!',
-        'Your glucose reading has been saved successfully.',
-        [
-          {
-            text: 'Add Another',
-            onPress: () => {
-              // Reset form
-              setGlucoseValue('');
-              setMealContext('');
-              setSelectedDate(new Date());
-              setNotes('');
-            },
-          },
-          {
-            text: 'Done',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Save glucose log error:', error);
-      Alert.alert('Error', 'Failed to save glucose reading. Please try again.');
-    }
-  };
 
-  // Handle date/time change
-  const handleDateTimeChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setSelectedDate(selectedDate);
-    }
-  };
 
   return (
     <ScreenContainer backgroundColor="bg-gray-50">
-      {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-100">
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="p-2 -ml-2"
-          >
-            <Text className="text-darkBlue text-lg">← Back</Text>
-          </TouchableOpacity>
-          <Text className="text-xl font-bold text-darkBlue">Add Glucose Reading</Text>
-          <View className="w-12" />
-        </View>
-      </View>
+      <ScreenHeader
+        title="Add Glucose Reading"
+        subtitle="Track your blood sugar levels"
+      />
 
-      <ScrollView 
+      <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
-        {/* Form Container */}
-        <View className="bg-white mx-4 mt-4 rounded-xl p-6 shadow-sm">
-          
-          {/* Glucose Value */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-darkBlue mb-2">
-              Glucose Value *
-            </Text>
-            <Text className="text-textSecondary text-sm mb-3">
-              Select your blood sugar reading
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowValuePicker(true)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-4"
-            >
-              <Text className={`text-lg font-medium ${
-                glucoseValue ? 'text-darkBlue' : 'text-textSecondary'
-              }`}>
-                {glucoseValue ? `${glucoseValue} ${glucoseUnit}` : `Select glucose value (${glucoseUnit})`}
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* Error Message */}
+        <View className="mx-4 mb-4">
+          <FormError error={error} />
+        </View>
 
-          {/* Meal Context */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-darkBlue mb-2">
-              When was this taken? *
-            </Text>
-            <Text className="text-textSecondary text-sm mb-3">
-              Select the timing of your reading
-            </Text>
-            <View className="flex-row flex-wrap gap-3">
-              {mealContextOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => handleMealContextSelect(option.value)}
-                  className={`flex-1 min-w-[45%] py-3 px-4 rounded-xl border ${
-                    mealContext === option.value
-                      ? 'bg-primary border-primary'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <Text className={`text-center font-medium ${
-                    mealContext === option.value ? 'text-white' : 'text-darkBlue'
-                  }`}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+        {/* Form Container */}
+        <View className="bg-white mx-4 rounded-xl p-6 shadow-sm">
+
+          {/* Glucose Value Picker */}
+          <ValuePicker
+            label="Glucose Value *"
+            placeholder={`Select glucose value (${glucoseUnit})`}
+            value={values.value}
+            onValueChange={(value) => setValue('value', value)}
+            options={generateGlucoseOptions()}
+            error={errors.value}
+            className="mb-6"
+          />
+
+          {/* Meal Context Selection */}
+          <OptionGrid
+            label="When was this taken? *"
+            subtitle="Select the timing of your reading"
+            options={FORM_OPTIONS.mealContext}
+            selectedValue={values.logType}
+            onSelect={(value) => setValue('logType', value)}
+            containerClassName="mb-6"
+            columns={2}
+          />
 
           {/* Date and Time */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-darkBlue mb-2">
-              Date & Time
-            </Text>
-            <Text className="text-textSecondary text-sm mb-3">
-              When was this reading taken?
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-4"
-            >
-              <View className="flex-row justify-between items-center">
-                <View>
-                  <Text className="text-darkBlue font-medium text-base">
-                    {formatDate(selectedDate)}
-                  </Text>
-                  <Text className="text-textSecondary text-sm">
-                    {formatTime(selectedDate)}
-                  </Text>
-                </View>
-                <Text className="text-textSecondary">📅</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+          <DateTimePicker
+            label="Date & Time *"
+            subtitle="When was this reading taken?"
+            value={selectedDate}
+            onDateTimeChange={setSelectedDate}
+            className="mb-6"
+          />
 
-          {/* Notes (Optional) */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-darkBlue mb-2">
-              Notes (Optional)
-            </Text>
-            <Text className="text-textSecondary text-sm mb-3">
-              Add any additional context or observations
-            </Text>
-            <FormInput
-              label=""
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="e.g., Feeling tired, after exercise, before medication..."
-              multiline
-              numberOfLines={3}
-              containerClassName="mb-0"
-              inputClassName="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-darkBlue min-h-[80px]"
-            />
-          </View>
+          {/* Notes */}
+          <FormInput
+            label="Notes (Optional)"
+            placeholder="e.g., Feeling tired, after exercise, before medication..."
+            value={values.notes}
+            onChangeText={(text) => setValue('notes', text)}
+            multiline
+            numberOfLines={3}
+            error={errors.notes}
+            className="mb-6"
+          />
 
           {/* Save Button */}
           <Button
             title={isLoading ? "Saving..." : "Save Reading"}
-            onPress={handleSaveLog}
+            onPress={() => handleSubmit({})}
             variant="primary"
             size="large"
-            disabled={isLoading}
+            disabled={isLoading || !isValid}
           />
         </View>
 
         {/* Help Text */}
-        <View className="mx-4 mt-4 p-4 bg-lightBlue rounded-xl">
-          <Text className="text-darkBlue font-medium mb-2">💡 Tips for accurate readings:</Text>
-          <Text className="text-darkBlue text-sm leading-5">
+        <View className="mx-4 mt-4 p-4 bg-blue-50 rounded-xl">
+          <Text className="text-blue-800 font-medium mb-2">💡 Tips for accurate readings:</Text>
+          <Text className="text-blue-700 text-sm leading-5">
             • Wash your hands before testing{'\n'}
             • Use the side of your fingertip{'\n'}
             • Record readings at consistent times{'\n'}
@@ -309,53 +157,6 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
           </Text>
         </View>
       </ScrollView>
-
-      {/* Glucose Value Picker Modal */}
-      <Modal
-        visible={showValuePicker}
-        transparent={true}
-        animationType="slide"
-      >
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white rounded-t-3xl p-6 max-h-96">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-semibold text-textPrimary">Select Glucose Value</Text>
-              <TouchableOpacity onPress={() => setShowValuePicker(false)}>
-                <Text className="text-primary font-medium">Done</Text>
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {glucoseOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  className={`py-3 px-4 rounded-lg mb-2 ${
-                    glucoseValue === option.value ? 'bg-primary' : 'bg-gray-50'
-                  }`}
-                  onPress={() => handleValueSelect(option.value)}
-                >
-                  <Text className={`text-center font-medium ${
-                    glucoseValue === option.value ? 'text-white' : 'text-textPrimary'
-                  }`}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Date Time Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="datetime"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateTimeChange}
-          maximumDate={new Date()}
-        />
-      )}
     </ScreenContainer>
   );
 }

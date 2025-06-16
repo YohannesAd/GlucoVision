@@ -24,9 +24,18 @@ export default function ScreenContainer({
   statusBarStyle = 'dark-content',
   statusBarBackgroundColor = '#FFFFFF',
 }: ScreenContainerProps) {
+  // Ensure children is valid
+  if (!children) {
+    console.warn('ScreenContainer: No children provided');
+    return null;
+  }
+
   return (
-    <SafeAreaView className={`flex-1 ${backgroundColor}`}>
-      <StatusBar barStyle={statusBarStyle} backgroundColor={statusBarBackgroundColor} />
+    <SafeAreaView className={`flex-1 ${backgroundColor || 'bg-white'}`}>
+      <StatusBar
+        barStyle={statusBarStyle || 'dark-content'}
+        backgroundColor={statusBarBackgroundColor || '#FFFFFF'}
+      />
       {children}
     </SafeAreaView>
   );

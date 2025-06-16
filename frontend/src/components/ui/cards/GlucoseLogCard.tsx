@@ -20,10 +20,10 @@ interface GlucoseLogCardProps {
 }
 
 const timeOfDayOptions = [
-  { value: 'Fasting', label: 'Fasting' },
-  { value: 'Before Meal', label: 'Before Meal' },
-  { value: 'After Meal', label: 'After Meal' },
-  { value: 'Bedtime', label: 'Bedtime' },
+  { value: 'fasting', label: 'Fasting' },
+  { value: 'before_meal', label: 'Before Meal' },
+  { value: 'after_meal', label: 'After Meal' },
+  { value: 'bedtime', label: 'Bedtime' },
 ];
 
 export default function GlucoseLogCard({

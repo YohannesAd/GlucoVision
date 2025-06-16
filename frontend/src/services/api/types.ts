@@ -57,12 +57,48 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  user: User;
+  user: import('../../types').User;
   tokens: {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
   };
+}
+
+// FastAPI specific response types
+export interface FastAPIUser {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  diabetes_type?: string;
+  preferred_unit?: string;
+  target_range_min?: number;
+  target_range_max?: number;
+  has_completed_onboarding: boolean;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+  last_login?: string;
+}
+
+export interface FastAPIAuthResponse {
+  user: FastAPIUser;
+  tokens: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  };
+}
+
+export interface FastAPITokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
 }
 
 // User Types

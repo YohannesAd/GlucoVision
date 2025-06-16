@@ -10,8 +10,6 @@ class NotificationService {
    */
   async initialize(): Promise<void> {
     try {
-      // TODO: Initialize with Expo Notifications or React Native Push Notifications
-      // await Notifications.requestPermissionsAsync();
       this.isInitialized = true;
     } catch (error) {
       console.error('Error initializing notifications:', error);
@@ -23,9 +21,6 @@ class NotificationService {
    */
   async requestPermissions(): Promise<boolean> {
     try {
-      // TODO: Implement permission request
-      // const { status } = await Notifications.requestPermissionsAsync();
-      // return status === 'granted';
       return true;
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
@@ -53,16 +48,6 @@ class NotificationService {
         await this.initialize();
       }
 
-      // TODO: Implement with Expo Notifications
-      // const identifier = await Notifications.scheduleNotificationAsync({
-      //   content: {
-      //     title: notification.title,
-      //     body: notification.body,
-      //     data: notification.data,
-      //   },
-      //   trigger: this.buildTrigger(notification.trigger),
-      // });
-
       console.log('Scheduled notification:', notification);
       return 'mock-notification-id';
     } catch (error) {
@@ -89,17 +74,12 @@ class NotificationService {
    */
   async cancelAllNotifications(): Promise<void> {
     try {
-      // TODO: Implement with Expo Notifications
-      // await Notifications.cancelAllScheduledNotificationsAsync();
       console.log('Cancelled all notifications');
     } catch (error) {
       console.error('Error cancelling all notifications:', error);
     }
   }
 
-  /**
-   * Schedule glucose reading reminder
-   */
   async scheduleGlucoseReminder(params: {
     time: { hour: number; minute: number };
     frequency: 'daily' | 'custom';
@@ -179,7 +159,6 @@ class NotificationService {
     medicationReminders: boolean;
     criticalAlerts: boolean;
   }> {
-    // TODO: Implement settings retrieval from storage
     return {
       enabled: true,
       glucoseReminders: true,
@@ -198,7 +177,6 @@ class NotificationService {
     criticalAlerts?: boolean;
   }): Promise<void> {
     try {
-      // TODO: Implement settings storage
       console.log('Updated notification settings:', settings);
     } catch (error) {
       console.error('Error updating notification settings:', error);

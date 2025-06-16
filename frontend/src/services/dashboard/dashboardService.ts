@@ -2,14 +2,8 @@
  * GlucoVision Dashboard Service
  * =============================
  * 
- * Professional service for dashboard data aggregation.
+ * service for dashboard data aggregation.
  * Combines user profile, glucose readings, and AI insights.
- * 
- * Features:
- * - Dashboard data aggregation
- * - Recent readings with statistics
- * - AI insights integration
- * - Clean error handling
  */
 
 import { API_BASE_URL } from '../api/config';
