@@ -7,7 +7,8 @@ import {
   NavigationHeader,
   DataSection,
   StatsCard,
-  Button
+  Button,
+  PDFExportModal
 } from '../../components/ui';
 import LogFilters from '../../components/ui/sections/LogFilters';
 import CollapsibleLogsList from '../../components/ui/lists/CollapsibleLogsList';
@@ -41,6 +42,9 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
 
   // Filter state
   const [filters, setFilters] = useState<FilterOptions>(getDefaultFilters());
+
+  // PDF Export state
+  const [showPDFExport, setShowPDFExport] = useState(false);
 
   // Fetch glucose logs
   const {
@@ -116,6 +120,26 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
 
   const handleClearFilters = () => {
     setFilters(getDefaultFilters());
+  };
+
+  // PDF Export handlers
+  const handleOpenPDFExport = () => {
+    setShowPDFExport(true);
+  };
+
+  const handleClosePDFExport = () => {
+    setShowPDFExport(false);
+  };
+
+
+
+  // Prepare user info for PDF export
+  const userInfoForPDF = {
+    fullName: userData?.profile?.personalInfo?.fullName || userData?.email || 'Unknown User',
+    email: userData?.email || '',
+    age: userData?.profile?.personalInfo?.age,
+    gender: userData?.profile?.personalInfo?.gender,
+    dateOfBirth: userData?.profile?.personalInfo?.dateOfBirth
   };
 
   return (
@@ -223,21 +247,23 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
             className="mx-4 mt-4"
           >
             <Button
-              title={`Export ${isFiltered ? 'Filtered ' : ''}Data`}
-              onPress={() => {
-                // TODO: Implement export functionality with filtered data
-                console.log('Export data functionality to be implemented', {
-                  totalLogs: logs?.length || 0,
-                  filteredLogs: filteredLogs.length,
-                  filters
-                });
-              }}
+              title={`Export ${isFiltered ? 'Filtered ' : ''}PDF Report`}
+              onPress={handleOpenPDFExport}
               variant="outline"
               size="large"
             />
           </DataSection>
         )}
       </ScrollView>
+
+      {/* PDF Export Modal */}
+      <PDFExportModal
+        visible={showPDFExport}
+        onClose={handleClosePDFExport}
+        logs={logs || []}
+        userInfo={userInfoForPDF}
+        glucoseUnit={glucoseUnit}
+      />
     </ScreenContainer>
   );
 }

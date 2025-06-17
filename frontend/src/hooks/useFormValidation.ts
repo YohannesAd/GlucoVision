@@ -10,7 +10,7 @@ interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
-  custom?: (value: string) => string | null;
+  custom?: (value: string, allValues?: { [key: string]: string }) => string | null;
   message?: string;
   type?: 'email' | 'password' | 'phone' | 'glucose' | 'age' | 'weight' | 'height';
 }
@@ -104,7 +104,7 @@ export function useFormValidation({
     }
     // Custom validation
     else if (rule.custom) {
-      error = rule.custom(value);
+      error = rule.custom(value, values);
     }
 
     // Update errors state
@@ -129,12 +129,20 @@ export function useFormValidation({
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
         [field]: ''
+      }));
+    }
+
+    // For password fields, also clear confirmPassword error when newPassword changes
+    if (field === 'newPassword' && errors['confirmPassword']) {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: ''
       }));
     }
   }, [errors]);
@@ -231,6 +239,16 @@ export const VALIDATION_RULES = {
   changePassword: {
     currentPassword: { required: true, minLength: 6 },
     newPassword: { required: true, type: 'password' as const },
-    confirmPassword: { required: true, minLength: 8 }
+    confirmPassword: {
+      required: true,
+      minLength: 8,
+      custom: (value: string, allValues?: { [key: string]: string }) => {
+        const newPassword = allValues?.newPassword || '';
+        if (value && newPassword && value !== newPassword) {
+          return 'Passwords do not match';
+        }
+        return null;
+      }
+    }
   }
 };

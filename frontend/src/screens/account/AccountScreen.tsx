@@ -15,7 +15,7 @@ interface AccountScreenProps {
   navigation: AccountScreenNavigationProp;
 }
 
-export default function AccountScreen({ }: AccountScreenProps) {
+export default function AccountScreen({ navigation }: AccountScreenProps) {
   const { auth } = useAppState();
   const { request } = useAPI();
 
@@ -71,23 +71,60 @@ export default function AccountScreen({ }: AccountScreenProps) {
   };
 
   // Action handlers
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     Alert.alert(
       'Delete Account',
-      'This action cannot be undone. All your data will be permanently deleted.',
+      'This action cannot be undone. Your account will be deactivated and your data preserved for medical compliance.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => Alert.alert('Feature Coming Soon', 'Account deletion will be available in a future update.')
+          onPress: async () => {
+            try {
+              // Call delete account API
+              const response = await apiCall(API_ENDPOINTS.USER.DELETE_ACCOUNT, {
+                method: 'DELETE'
+              });
+
+              if (response.success) {
+                // Show success message and logout
+                Alert.alert(
+                  'Account Deleted',
+                  'Your account has been successfully deleted. You will now be logged out.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        // Clear auth state and navigate to login
+                        auth.actions.logout();
+                        navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'Login' }]
+                        });
+                      }
+                    }
+                  ]
+                );
+              } else {
+                throw new Error(response.error || 'Failed to delete account');
+              }
+            } catch (error) {
+              console.error('Delete account error:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete account. Please try again later.',
+                [{ text: 'OK' }]
+              );
+            }
+          }
         }
       ]
     );
   };
 
   const handleChangePassword = () => {
-    Alert.alert('Feature Coming Soon', 'Password change will be available in a future update.');
+    navigation.navigate('ChangePassword');
   };
 
   const handleExportData = () => {
@@ -109,6 +146,29 @@ export default function AccountScreen({ }: AccountScreenProps) {
       year: 'numeric',
       month: 'long'
     });
+  };
+
+  // Format date of birth for display
+  const formatDateOfBirth = (dateOfBirth: string | undefined) => {
+    if (!dateOfBirth) return 'Not set';
+
+    try {
+      const date = new Date(dateOfBirth);
+
+      // Check if the date is valid and not a default/placeholder date
+      if (isNaN(date.getTime()) || date.getFullYear() < 1920 || date.getFullYear() > new Date().getFullYear()) {
+        return 'Not set';
+      }
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date of birth:', error);
+      return 'Not set';
+    }
   };
 
   const userData = profileData?.data || auth?.state?.user || {};
@@ -159,7 +219,7 @@ export default function AccountScreen({ }: AccountScreenProps) {
           isEmpty={!userData}
           className="mx-4 mt-4"
         >
-          <InfoRow label="Date of Birth" value={userData?.dateOfBirth || 'Not set'} />
+          <InfoRow label="Date of Birth" value={formatDateOfBirth(userData?.dateOfBirth || userData?.date_of_birth)} />
           <InfoRow label="Gender" value={userData?.gender || 'Not set'} />
           <InfoRow label="Diabetes Type" value={userData?.diabetesType || 'Not set'} />
         </DataSection>
@@ -173,31 +233,44 @@ export default function AccountScreen({ }: AccountScreenProps) {
           isEmpty={false}
           className="mx-4 mt-4"
         >
-          <View className="space-y-3">
-            <Button
-              title="Change Password"
-              onPress={handleChangePassword}
-              variant="outline"
-              size="large"
-            />
-            <Button
-              title="Export My Data"
-              onPress={handleExportData}
-              variant="outline"
-              size="large"
-            />
-            <Button
-              title="Logout"
-              onPress={handleLogout}
-              variant="secondary"
-              size="large"
-            />
-            <Button
-              title="Delete Account"
-              onPress={handleDeleteAccount}
-              variant="secondary"
-              size="large"
-            />
+          <View className="space-y-4">
+            {/* Password Management */}
+            <View className="mb-3">
+              <Button
+                title="Change Password"
+                onPress={handleChangePassword}
+                variant="outline"
+                size="large"
+              />
+            </View>
+
+            {/* Data Export */}
+            <View className="mb-3">
+              <Button
+                title="Export My Data"
+                onPress={handleExportData}
+                variant="outline"
+                size="large"
+              />
+            </View>
+
+            {/* Account Actions */}
+            <View className="mt-2 space-y-3">
+              <Button
+                title="Logout"
+                onPress={handleLogout}
+                variant="secondary"
+                size="large"
+              />
+              <View className="mt-3">
+                <Button
+                  title="Delete Account"
+                  onPress={handleDeleteAccount}
+                  variant="secondary"
+                  size="large"
+                />
+              </View>
+            </View>
           </View>
         </DataSection>
       </ScrollView>

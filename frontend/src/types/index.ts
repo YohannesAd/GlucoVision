@@ -23,6 +23,7 @@ export type RootStackParamList = {
   AIChat: undefined;
   Profile: undefined;
   Account: undefined;
+  ChangePassword: undefined;
   Reports: undefined;
 };
 

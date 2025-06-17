@@ -199,6 +199,16 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           ))}
         </DataSection>
 
+        {/* AI Chat Navigation */}
+        <View className="mx-4 mt-4 mb-2">
+          <Button
+            title="💬 Ask AI Assistant"
+            onPress={() => navigation.navigate('AIChat')}
+            variant="outline"
+            size="large"
+          />
+        </View>
+
         {/* Recent Readings */}
         <DataSection
           title="Recent Readings"
@@ -232,8 +242,6 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         {/* Export Options */}
         <PDFExportSection
           onExportAll={() => handleExport('pdf')}
-          onExport30Days={() => handleExport('pdf')}
-          onExportCustom={() => handleExport('csv')}
         />
 
       </ScrollView>

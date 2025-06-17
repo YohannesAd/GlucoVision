@@ -66,11 +66,12 @@ export { default as ProgressIndicator } from './indicators/ProgressIndicator';
 export { default as PeriodSelector } from './indicators/PeriodSelector';
 
 // 🎨 SECTION COMPONENTS
-export { default as ExportOptions } from './sections/ExportOptions';
 export { default as AIStatsGrid } from './sections/AIStatsGrid';
 export { default as LogFilters } from './sections/LogFilters';
 export { default as DataSection } from './sections/DataSection';
 export { default as PDFExportSection } from './sections/PDFExportSection';
+export { default as PDFExportDateSelector } from './sections/PDFExportDateSelector';
+export { default as PDFReportGenerator } from './sections/PDFReportGenerator';
 export { default as ResendCodeSection } from './sections/ResendCodeSection';
 
 // 💬 MESSAGE COMPONENTS
@@ -80,3 +81,6 @@ export { default as SuccessMessage } from './messages/SuccessMessage';
 export { default as LoadingState } from './messages/LoadingState';
 export { default as EmptyState } from './messages/EmptyState';
 export { default as StatusMessage } from './messages/StatusMessage';
+
+// 📄 MODAL COMPONENTS
+export { default as PDFExportModal } from './modals/PDFExportModal';

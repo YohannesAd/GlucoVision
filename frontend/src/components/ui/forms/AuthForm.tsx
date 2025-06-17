@@ -101,8 +101,9 @@ export default function AuthForm({
           break;
 
         case 'changePassword':
-          // TODO: Implement change password
-          console.log('Change password');
+          // Use authService to change password
+          const { authService } = await import('../../../services/auth/authService');
+          await authService.changePassword(values.currentPassword, values.newPassword);
           result = { success: true };
           break;
 

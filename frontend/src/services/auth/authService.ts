@@ -170,6 +170,32 @@ class AuthService {
     }
   }
 
+  // Change password for authenticated user
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    try {
+      const token = await this.getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      await apiClient.post(
+        ENDPOINTS.AUTH.CHANGE_PASSWORD,
+        {
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: newPassword
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    } catch (error) {
+      throw this.handleAuthError(error);
+    }
+  }
+
   // Store authentication data securely
   private async storeAuthData(authData: AuthResponse): Promise<void> {
     try {
