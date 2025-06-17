@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import DateTimePicker from '../inputs/DateTimePicker';
 
 /**
  * PDFExportDateSelector Component
@@ -20,7 +19,7 @@ export interface DateRange {
   endDate: Date;
 }
 
-type DatePreset = 'last7days' | 'last30days' | 'last3months' | 'custom';
+type DatePreset = 'last7days' | 'last30days' | 'last3months';
 
 interface PDFExportDateSelectorProps {
   selectedRange: DateRange;
@@ -35,14 +34,12 @@ export default function PDFExportDateSelector({
 }: PDFExportDateSelectorProps) {
   
   const [selectedPreset, setSelectedPreset] = useState<DatePreset>('last30days');
-  const [showCustomPicker, setShowCustomPicker] = useState(false);
 
   // Preset options for quick selection
   const presetOptions = [
     { value: 'last7days' as DatePreset, label: 'Last 7 Days' },
     { value: 'last30days' as DatePreset, label: 'Last 30 Days' },
     { value: 'last3months' as DatePreset, label: 'Last 3 Months' },
-    { value: 'custom' as DatePreset, label: 'Custom Range' },
   ];
 
   // Generate date range based on preset
@@ -68,8 +65,7 @@ export default function PDFExportDateSelector({
         last3Months.setMonth(today.getMonth() - 3);
         last3Months.setHours(0, 0, 0, 0);
         return { startDate: last3Months, endDate: today };
-        
-      case 'custom':
+
       default:
         return selectedRange;
     }
@@ -78,26 +74,11 @@ export default function PDFExportDateSelector({
   // Handle preset selection
   const handlePresetSelect = (preset: DatePreset) => {
     setSelectedPreset(preset);
-    
-    if (preset === 'custom') {
-      setShowCustomPicker(true);
-    } else {
-      setShowCustomPicker(false);
-      const newRange = getPresetDateRange(preset);
-      onRangeChange(newRange);
-    }
-  };
-
-  // Handle custom date changes
-  const handleStartDateChange = (date: Date) => {
-    const newRange = { ...selectedRange, startDate: date };
+    const newRange = getPresetDateRange(preset);
     onRangeChange(newRange);
   };
 
-  const handleEndDateChange = (date: Date) => {
-    const newRange = { ...selectedRange, endDate: date };
-    onRangeChange(newRange);
-  };
+
 
   // Validate date range
   const isValidRange = selectedRange.startDate <= selectedRange.endDate;
@@ -131,36 +112,7 @@ export default function PDFExportDateSelector({
         </View>
       </View>
 
-      {/* Custom Date Range Picker */}
-      {(selectedPreset === 'custom' || showCustomPicker) && (
-        <View className="mb-4">
-          <Text className="text-textSecondary text-sm mb-3">Custom Date Range</Text>
-          
-          <View className="space-y-4">
-            {/* Start Date */}
-            <View>
-              <Text className="text-textSecondary text-xs mb-2">From Date</Text>
-              <DateTimePicker
-                value={selectedRange.startDate}
-                onDateTimeChange={handleStartDateChange}
-                mode="date"
-                className="mb-2"
-              />
-            </View>
 
-            {/* End Date */}
-            <View>
-              <Text className="text-textSecondary text-xs mb-2">To Date</Text>
-              <DateTimePicker
-                value={selectedRange.endDate}
-                onDateTimeChange={handleEndDateChange}
-                mode="date"
-                className="mb-2"
-              />
-            </View>
-          </View>
-        </View>
-      )}
 
       {/* Date Range Summary */}
       <View className="bg-blue-50 rounded-lg p-4">

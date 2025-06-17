@@ -167,21 +167,21 @@ export default function PDFExportModal({
               <View className="bg-white rounded-xl p-6 shadow-sm mb-6">
                 <Text className="text-lg font-bold text-darkBlue mb-4">Export Summary</Text>
                 
-                <View className="space-y-3">
-                  <View className="flex-row justify-between">
+                <View>
+                  <View className="flex-row justify-between mb-3">
                     <Text className="text-gray-600">Report Period:</Text>
                     <Text className="text-darkBlue font-medium">
                       {Math.ceil((selectedDateRange.endDate.getTime() - selectedDateRange.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
                     </Text>
                   </View>
-                  
-                  <View className="flex-row justify-between">
+
+                  <View className="flex-row justify-between mb-3">
                     <Text className="text-gray-600">Total Readings:</Text>
                     <Text className="text-darkBlue font-medium">
                       {reportData.logs.length}
                     </Text>
                   </View>
-                  
+
                   <View className="flex-row justify-between">
                     <Text className="text-gray-600">File Name:</Text>
                     <Text className="text-darkBlue font-medium text-right flex-1 ml-2" numberOfLines={2}>
@@ -215,14 +215,15 @@ export default function PDFExportModal({
 
         {/* Footer Actions */}
         <View className="bg-white border-t border-gray-200 p-6">
-          <View className="flex-row gap-3">
+          <View className="flex-row"
+            style={{ gap: 12 }}>
             {!showPreview ? (
               <>
                 <Button
                   title="Preview Report"
                   onPress={() => setShowPreview(true)}
                   variant="outline"
-                  size="large"
+                  size="medium"
                   disabled={!validation.isValid || isExporting}
                   className="flex-1"
                 />
@@ -230,7 +231,7 @@ export default function PDFExportModal({
                   title={isExporting ? "Exporting..." : "Export PDF"}
                   onPress={handleExport}
                   variant="primary"
-                  size="large"
+                  size="medium"
                   disabled={!validation.isValid || isExporting}
                   className="flex-1"
                 />
@@ -241,7 +242,7 @@ export default function PDFExportModal({
                   title="Back to Settings"
                   onPress={() => setShowPreview(false)}
                   variant="outline"
-                  size="large"
+                  size="medium"
                   disabled={isExporting}
                   className="flex-1"
                 />
@@ -249,7 +250,7 @@ export default function PDFExportModal({
                   title={isExporting ? "Exporting..." : "Export PDF"}
                   onPress={handleExport}
                   variant="primary"
-                  size="large"
+                  size="medium"
                   disabled={isExporting}
                   className="flex-1"
                 />

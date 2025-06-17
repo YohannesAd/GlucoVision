@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, Alert, View, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
-import { ScreenContainer, ScreenHeader, DataSection, Button } from '../../components/ui';
+import { ScreenContainer, NavigationHeader, DataSection, Button } from '../../components/ui';
 import { useAppState, useDataFetching, useAPI, API_ENDPOINTS } from '../../hooks';
 
 /**
@@ -175,9 +175,10 @@ export default function AccountScreen({ navigation }: AccountScreenProps) {
 
   return (
     <ScreenContainer backgroundColor="bg-gray-50">
-      <ScreenHeader
+      <NavigationHeader
         title="Account"
-        subtitle="Manage your profile and settings"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
       />
 
       <ScrollView

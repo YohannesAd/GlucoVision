@@ -62,9 +62,9 @@ export default function DashboardHeader({ onMenuPress }: DashboardHeaderProps) {
           className="p-2 -mr-2"
           activeOpacity={0.7}
         >
-          <View className="space-y-1">
-            <View className="w-5 h-0.5 bg-darkBlue" />
-            <View className="w-5 h-0.5 bg-darkBlue" />
+          <View>
+            <View className="w-5 h-0.5 bg-darkBlue mb-1" />
+            <View className="w-5 h-0.5 bg-darkBlue mb-1" />
             <View className="w-5 h-0.5 bg-darkBlue" />
           </View>
         </TouchableOpacity>

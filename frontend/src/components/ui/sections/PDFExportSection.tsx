@@ -25,12 +25,12 @@ export default function PDFExportSection({
   return (
     <View className="px-6 py-4">
       <Text className="text-lg font-bold text-darkBlue mb-4">Export Reports</Text>
-      
+
       <View className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
         <Text className="text-textSecondary text-sm mb-4">
           Generate comprehensive reports for your healthcare provider
         </Text>
-        
+
         <Button
           title="Download All Data (PDF)"
           onPress={onExportAll || (() => console.log('Generate full PDF'))}

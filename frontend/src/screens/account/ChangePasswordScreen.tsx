@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { ScreenContainer, ScreenHeader, FormContainer, AuthForm } from '../../components/ui';
+import { ScreenContainer, NavigationHeader, FormContainer, AuthForm } from '../../components/ui';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -39,9 +39,10 @@ export default function ChangePasswordScreen({ navigation }: ChangePasswordScree
 
   return (
     <ScreenContainer backgroundColor="bg-gray-50">
-      <ScreenHeader
+      <NavigationHeader
         title="Change Password"
-        subtitle="Update your account password for better security"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
       />
 
       <FormContainer>

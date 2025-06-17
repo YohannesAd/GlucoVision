@@ -20,6 +20,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  className?: string;
 }
 
 export default function Button({
@@ -30,6 +31,7 @@ export default function Button({
   disabled = false,
   style,
   textStyle,
+  className = '',
 }: ButtonProps) {
   // Generate button container classes based on variant and size
   const getButtonClasses = () => {
@@ -49,7 +51,7 @@ export default function Button({
       outline: disabled ? 'border border-gray-300' : 'border border-primary',
     };
 
-    return `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]}`;
+    return `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
   };
 
   // Generate text classes based on variant and size

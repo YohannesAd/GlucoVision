@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { Button, OnboardingLayout, GlucoseLogCard } from '../../components/ui';
+import { View, Text } from 'react-native';
+import { Button, OnboardingLayout, FieldPicker, OptionGrid } from '../../components/ui';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAppState, useFormSubmission, useFormValidation, VALIDATION_RULES } from '../../hooks';
+import { useAppState, useFormSubmission } from '../../hooks';
+import { FORM_OPTIONS, generateGlucoseOptions } from '../../constants/formOptions';
 
 /**
  * OnboardingPersonalInfo3Screen - Third and final step of onboarding
@@ -26,6 +27,7 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
     { value: '', timeOfDay: '' },
     { value: '', timeOfDay: '' }
   ]);
+
   const updateLog = (index: number, field: 'value' | 'timeOfDay', value: string) => {
     const newLogs = [...logs];
     newLogs[index][field] = value;
@@ -87,39 +89,35 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
             </View>
           )}
 
-          {/* Glucose Log Cards */}
+          {/* Clean Glucose Log Forms */}
           {logs.map((log, index) => (
-            <GlucoseLogCard
-              key={index}
-              logNumber={index + 1}
-              value={log.value}
-              timeOfDay={log.timeOfDay}
-              onValuePress={() => {
-                Alert.prompt(
-                  `Glucose Log ${index + 1}`,
-                  'Enter glucose value (mg/dL):',
-                  [
-                    {
-                      text: 'Cancel',
-                      style: 'cancel',
-                    },
-                    {
-                      text: 'Save',
-                      onPress: (value) => {
-                        if (value && !isNaN(Number(value))) {
-                          updateLog(index, 'value', value);
-                        } else if (value) {
-                          Alert.alert('Invalid Input', 'Please enter a valid number');
-                        }
-                      },
-                    },
-                  ],
-                  'plain-text',
-                  log.value // Pre-fill with current value
-                );
-              }}
-              onTimeSelect={(timeOfDay: string) => updateLog(index, 'timeOfDay', timeOfDay)}
-            />
+            <View key={index} className="mb-6 p-4 bg-gray-50 rounded-xl">
+              <Text className="text-textPrimary font-semibold mb-4 text-center">
+                Glucose Log {index + 1} *
+              </Text>
+
+              {/* Glucose Value Picker */}
+              <FieldPicker
+                label="Glucose Value *"
+                subtitle="Select your glucose reading in mg/dL"
+                placeholder="Select glucose value (mg/dL)"
+                value={log.value}
+                options={generateGlucoseOptions()}
+                onSelect={(value: string) => updateLog(index, 'value', value)}
+                containerClassName="mb-4"
+              />
+
+              {/* Time of Day Selection */}
+              <OptionGrid
+                label="When was this taken? *"
+                subtitle="Select the timing of your reading"
+                options={FORM_OPTIONS.mealContext}
+                selectedValue={log.timeOfDay}
+                onSelect={(value) => updateLog(index, 'timeOfDay', value)}
+                containerClassName="mb-2"
+                columns={2}
+              />
+            </View>
           ))}
 
           {/* Navigation Buttons */}
@@ -128,14 +126,14 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
               title="Back"
               onPress={() => navigation.goBack()}
               variant="outline"
-              size="large"
+              size="medium"
               style={{ flex: 1 }}
             />
             <Button
               title={isLoading ? "Completing..." : "Complete Setup"}
               onPress={() => handleSubmit({ logs })}
               variant="primary"
-              size="large"
+              size="medium"
               disabled={isLoading || !logs.every(log => log.value && log.timeOfDay)}
               style={{ flex: 1 }}
             />

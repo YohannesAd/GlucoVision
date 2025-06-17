@@ -4,7 +4,7 @@ import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ScreenContainer, DataSection, StatsCard, LogsList, AIInsightCard,
-  Button, DashboardHeader, NavigationMenu, PDFExportSection
+  Button, DashboardHeader, NavigationMenu, PDFExportSection, PDFExportModal
 } from '../../components/ui';
 import { useAppState, useDataFetching, useAPI, API_ENDPOINTS } from '../../hooks';
 
@@ -22,6 +22,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const { auth } = useAppState();
   const { request } = useAPI();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [showPDFExport, setShowPDFExport] = useState(false);
 
   // Fetch dashboard data using clean useAPI hook
   const { data: dashboardData, isLoading, error, refetch } = useDataFetching({
@@ -114,8 +115,19 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
   // Action handlers
   const handleAddLog = () => navigation.navigate('AddLog');
-  const handleExport = (format: 'csv' | 'pdf') => {
-    console.log(`Export ${format} requested`);
+  const handleOpenPDFExport = () => setShowPDFExport(true);
+  const handleClosePDFExport = () => setShowPDFExport(false);
+
+  // Prepare user info for PDF export
+  const userData = auth?.state?.user;
+  const userInfoForPDF = {
+    fullName: userData?.firstName && userData?.lastName
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData?.email || 'Unknown User',
+    email: userData?.email || '',
+    age: userData?.age,
+    gender: userData?.gender,
+    dateOfBirth: userData?.dateOfBirth || userData?.date_of_birth
   };
 
   return (
@@ -241,7 +253,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
 
         {/* Export Options */}
         <PDFExportSection
-          onExportAll={() => handleExport('pdf')}
+          onExportAll={handleOpenPDFExport}
         />
 
       </ScrollView>
@@ -251,6 +263,15 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         isVisible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
         onNavigate={handleMenuNavigation}
+      />
+
+      {/* PDF Export Modal */}
+      <PDFExportModal
+        visible={showPDFExport}
+        onClose={handleClosePDFExport}
+        logs={dashboardData?.recentLogs || []}
+        userInfo={userInfoForPDF}
+        glucoseUnit="mg/dL"
       />
     </ScreenContainer>
   );

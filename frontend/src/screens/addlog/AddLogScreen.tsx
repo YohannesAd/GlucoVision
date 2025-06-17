@@ -4,11 +4,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import {
   ScreenContainer,
-  ScreenHeader,
+  NavigationHeader,
   FormInput,
-  ValuePicker,
+  FieldPicker,
   OptionGrid,
-  DateTimePicker,
   Button,
   FormError
 } from '../../components/ui';
@@ -27,15 +26,59 @@ interface AddLogScreenProps {
 
 export default function AddLogScreen({ navigation }: AddLogScreenProps) {
   const { auth, glucose, user } = useAppState();
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const glucoseUnit = user?.state?.profile?.preferences?.glucoseUnit || 'mg/dL';
+
+  // Generate date options (last 7 days)
+  const generateDateOptions = () => {
+    const options = [];
+    const today = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+
+      let label;
+      if (i === 0) label = 'Today';
+      else if (i === 1) label = 'Yesterday';
+      else label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+      options.push({
+        value: date.toISOString().split('T')[0], // YYYY-MM-DD format
+        label: label
+      });
+    }
+    return options;
+  };
+
+  // Generate time options (every 30 minutes)
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = new Date();
+        time.setHours(hour, minute, 0, 0);
+        const timeString = time.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+        options.push({
+          value: `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`,
+          label: timeString
+        });
+      }
+    }
+    return options;
+  };
 
   const { values, errors, isValid, setValue, validateAll, resetForm } = useFormValidation({
     rules: VALIDATION_RULES.glucoseLog,
     initialValues: {
       value: '',
       logType: '',
-      notes: ''
+      notes: '',
+      date: new Date().toISOString().split('T')[0], // Default to today
+      time: new Date().toLocaleTimeString('en-US', { hour12: false }).slice(0, 5) // Default to current time
     }
   });
   const { isLoading, error, handleSubmit } = useFormSubmission({
@@ -44,12 +87,15 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         throw new Error('Please fix validation errors');
       }
 
+      // Combine date and time into a timestamp
+      const combinedDateTime = new Date(`${values.date}T${values.time}:00`);
+
       const logData = {
         value: parseInt(values.value),
         unit: glucoseUnit,
         logType: values.logType,
         notes: values.notes?.trim() || undefined,
-        timestamp: selectedDate.toISOString(),
+        timestamp: combinedDateTime.toISOString(),
         userId: auth?.state?.user?.id || ''
       };
 
@@ -64,7 +110,6 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
     },
     onSuccess: () => {
       resetForm();
-      setSelectedDate(new Date());
       navigation.goBack();
     },
     successMessage: 'Glucose reading saved successfully!',
@@ -75,9 +120,10 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
 
   return (
     <ScreenContainer backgroundColor="bg-gray-50">
-      <ScreenHeader
+      <NavigationHeader
         title="Add Glucose Reading"
-        subtitle="Track your blood sugar levels"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
       />
 
       <ScrollView
@@ -94,15 +140,18 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         <View className="bg-white mx-4 rounded-xl p-6 shadow-sm">
 
           {/* Glucose Value Picker */}
-          <ValuePicker
+          <FieldPicker
             label="Glucose Value *"
+            subtitle={`Select your glucose reading in ${glucoseUnit}`}
             placeholder={`Select glucose value (${glucoseUnit})`}
             value={values.value}
-            onValueChange={(value) => setValue('value', value)}
             options={generateGlucoseOptions()}
-            error={errors.value}
-            className="mb-6"
+            onSelect={(value: string) => setValue('value', value)}
+            containerClassName="mb-6"
           />
+          {errors.value && (
+            <Text className="text-red-500 text-sm mt-1 mb-4">{errors.value}</Text>
+          )}
 
           {/* Meal Context Selection */}
           <OptionGrid
@@ -115,14 +164,33 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
             columns={2}
           />
 
-          {/* Date and Time */}
-          <DateTimePicker
-            label="Date & Time *"
+          {/* Date Selection */}
+          <FieldPicker
+            label="Date *"
             subtitle="When was this reading taken?"
-            value={selectedDate}
-            onDateTimeChange={setSelectedDate}
-            className="mb-6"
+            placeholder="Select date"
+            value={values.date}
+            options={generateDateOptions()}
+            onSelect={(value: string) => setValue('date', value)}
+            containerClassName="mb-6"
           />
+          {errors.date && (
+            <Text className="text-red-500 text-sm mt-1 mb-4">{errors.date}</Text>
+          )}
+
+          {/* Time Selection */}
+          <FieldPicker
+            label="Time *"
+            subtitle="What time was this reading taken?"
+            placeholder="Select time"
+            value={values.time}
+            options={generateTimeOptions()}
+            onSelect={(value: string) => setValue('time', value)}
+            containerClassName="mb-6"
+          />
+          {errors.time && (
+            <Text className="text-red-500 text-sm mt-1 mb-4">{errors.time}</Text>
+          )}
 
           {/* Notes */}
           <FormInput

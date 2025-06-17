@@ -82,17 +82,17 @@ export default function GlucoseChart({
       {/* Chart */}
       <View className="items-center">
         {data && !isLoading ? (
-          <View className="w-full" style={{ paddingLeft: 50, paddingRight: 15 }}>
+          <View className="w-full" style={{ paddingHorizontal: 10 }}>
             <LineChart
               data={data}
-              width={screenWidth - 85}
+              width={screenWidth - 60}
               height={height}
               chartConfig={getChartConfig()}
               bezier
               style={{
                 marginVertical: 8,
                 borderRadius: 16,
-                marginLeft: 10,
+                alignSelf: 'center',
               }}
               withInnerLines={true}
               withOuterLines={false}
@@ -112,26 +112,7 @@ export default function GlucoseChart({
         )}
       </View>
 
-      {/* Legend */}
-      {showLegend && data && !isLoading && (
-        <View className="mt-4 pt-4 border-t border-gray-100">
-          <Text className="text-sm font-medium text-darkBlue mb-3">Chart Legend:</Text>
-          <View className="flex-row flex-wrap gap-4">
-            <View className="flex-row items-center">
-              <View className="w-3 h-3 bg-primary rounded-full mr-2" />
-              <Text className="text-textSecondary text-xs">Your Readings</Text>
-            </View>
-            <View className="flex-row items-center">
-              <View className="w-3 h-3 bg-green-500 rounded-full mr-2" />
-              <Text className="text-textSecondary text-xs">Target (120 mg/dL)</Text>
-            </View>
-            <View className="flex-row items-center">
-              <View className="w-3 h-3 bg-red-500 rounded-full mr-2" />
-              <Text className="text-textSecondary text-xs">Range (80-180)</Text>
-            </View>
-          </View>
-        </View>
-      )}
+
     </View>
   );
 }
