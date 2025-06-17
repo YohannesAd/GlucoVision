@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { ScrollView, View, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import {
@@ -7,10 +7,22 @@ import {
   NavigationHeader,
   DataSection,
   StatsCard,
-  LogsList,
   Button
 } from '../../components/ui';
+import LogFilters from '../../components/ui/sections/LogFilters';
+import CollapsibleLogsList from '../../components/ui/lists/CollapsibleLogsList';
 import { useAppState, useDataFetching, useAPI, API_ENDPOINTS } from '../../hooks';
+import {
+  applyFilters,
+  getFilterSummary,
+  hasActiveFilters,
+  getDefaultFilters,
+  type FilterOptions,
+  type DateFilter,
+  type MealFilter,
+  type SortOrder,
+  type ValueRange
+} from '../../utils/filterUtils';
 
 /**
  * ViewLogsScreen - Display and manage glucose readings
@@ -27,7 +39,10 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
   const { request } = useAPI();
   const userData = auth?.state?.user;
 
-  // Fetch glucose logs 
+  // Filter state
+  const [filters, setFilters] = useState<FilterOptions>(getDefaultFilters());
+
+  // Fetch glucose logs
   const {
     data: logs,
     isLoading,
@@ -62,8 +77,46 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
 
   const glucoseUnit = userData?.preferences?.glucoseUnit || 'mg/dL';
 
+  // Apply filters to logs
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    return applyFilters(logs, filters);
+  }, [logs, filters]);
+
+  // Filter summary
+  const filterSummary = useMemo(() => {
+    if (!logs) return '';
+    return getFilterSummary(filters, logs.length, filteredLogs.length);
+  }, [logs, filteredLogs, filters]);
+
+  // Check if filters are active
+  const isFiltered = hasActiveFilters(filters);
+
   // Handle add new reading
   const handleAddReading = () => navigation.navigate('AddLog');
+
+  // Filter handlers
+  const handleDateFilterChange = (dateFilter: DateFilter) => {
+    setFilters(prev => ({ ...prev, dateFilter }));
+  };
+
+  const handleMealFilterChange = (mealFilter: MealFilter) => {
+    setFilters(prev => ({ ...prev, mealFilter }));
+  };
+
+  const handleSortOrderChange = (sortOrder: SortOrder) => {
+    setFilters(prev => ({ ...prev, sortOrder }));
+  };
+
+  const handleValueRangeChange = (valueRange: ValueRange) => {
+    setFilters(prev => ({ ...prev, valueRange }));
+  };
+
+
+
+  const handleClearFilters = () => {
+    setFilters(getDefaultFilters());
+  };
 
   return (
     <ScreenContainer backgroundColor="bg-gray-50">
@@ -86,10 +139,24 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       >
+        {/* Smart Filters Section */}
+        <View className="mx-4 mt-4">
+          <LogFilters
+            dateFilter={filters.dateFilter}
+            mealFilter={filters.mealFilter}
+            sortOrder={filters.sortOrder}
+            valueRange={filters.valueRange}
+            onDateFilterChange={handleDateFilterChange}
+            onMealFilterChange={handleMealFilterChange}
+            onSortOrderChange={handleSortOrderChange}
+            onValueRangeChange={handleValueRangeChange}
+          />
+        </View>
+
         {/* Statistics Section */}
         <DataSection
           title="Summary Statistics"
-          subtitle={`${logs?.length || 0} total readings`}
+          subtitle={filterSummary}
           isLoading={isLoading}
           error={error}
           isEmpty={!logs || logs.length === 0}
@@ -98,41 +165,72 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
         >
           <StatsCard
             title="Average Glucose"
-            value={`${logs?.length ? '120' : '--'} ${glucoseUnit}`}
-            subtitle="Last 30 days"
+            value={`${filteredLogs?.length ? Math.round(filteredLogs.reduce((sum, log) => sum + log.value, 0) / filteredLogs.length) : '--'} ${glucoseUnit}`}
+            subtitle={isFiltered ? "Filtered results" : "All readings"}
             color="primary"
           />
         </DataSection>
 
-        {/* Glucose Logs List */}
+        {/* Glucose Logs List with Collapsible Older Logs */}
         <DataSection
-          title="Recent Readings"
-          subtitle="Your glucose log history"
+          title="Glucose Readings"
+          subtitle="Your filtered glucose log history"
           isLoading={isLoading}
           error={error}
           isEmpty={!logs || logs.length === 0}
           onRetry={refetch}
           className="mx-4 mt-4"
         >
-          <LogsList
-            logs={logs || []}
+          <CollapsibleLogsList
+            logs={filteredLogs}
             glucoseUnit={glucoseUnit}
             onAddReading={handleAddReading}
+            title=""
+            showAddButton={false}
+            emptyTitle={isFiltered ? "No Matching Readings" : "No Readings Yet"}
+            emptyMessage={isFiltered ? "No readings match your current filters. Try adjusting your criteria." : "Start tracking your glucose levels by adding your first reading."}
+            emptyActionText={isFiltered ? "Clear Filters" : "Add First Reading"}
+            recentDaysThreshold={14}
           />
         </DataSection>
 
+        {/* Filter Summary and Actions */}
+        {isFiltered && filteredLogs.length > 0 && (
+          <View className="mx-4 mt-4">
+            <View className="bg-blue-50 rounded-xl p-4">
+              <View className="flex-row justify-between items-center">
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-blue-900">
+                    {filterSummary}
+                  </Text>
+                </View>
+                <Button
+                  title="Clear Filters"
+                  onPress={handleClearFilters}
+                  variant="outline"
+                  size="small"
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Export Data Button */}
-        {logs && logs.length > 0 && (
+        {filteredLogs && filteredLogs.length > 0 && (
           <DataSection
             title="Export Options"
-            subtitle="Download your glucose data"
+            subtitle={`Download your ${isFiltered ? 'filtered ' : ''}glucose data`}
             className="mx-4 mt-4"
           >
             <Button
-              title="Export My Data"
+              title={`Export ${isFiltered ? 'Filtered ' : ''}Data`}
               onPress={() => {
-                // TODO: Implement export functionality
-                console.log('Export data functionality to be implemented');
+                // TODO: Implement export functionality with filtered data
+                console.log('Export data functionality to be implemented', {
+                  totalLogs: logs?.length || 0,
+                  filteredLogs: filteredLogs.length,
+                  filters
+                });
               }}
               variant="outline"
               size="large"

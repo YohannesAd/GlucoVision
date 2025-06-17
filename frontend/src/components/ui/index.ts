@@ -50,6 +50,7 @@ export { default as FeatureItem } from './lists/FeatureItem';
 export { default as StatisticsGrid } from './lists/StatisticsGrid';
 export { default as LogItem } from './lists/LogItem';
 export { default as LogsList } from './lists/LogsList';
+export { default as CollapsibleLogsList } from './lists/CollapsibleLogsList';
 
 // 📈 CHART COMPONENTS
 export { default as GlucoseChart } from './charts/GlucoseChart';
