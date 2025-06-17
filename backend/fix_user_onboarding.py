@@ -7,8 +7,8 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.database import AsyncSessionLocal
-from app.DatabaseModels.user import User
-from app.DatabaseModels.glucose_log import GlucoseLog, ReadingTypeEnum
+from app.models.user import User
+from app.models.glucose_log import GlucoseLog, ReadingTypeEnum
 
 async def fix_user_onboarding(email: str = "yohan@test.com"):
     """Fix the existing user's onboarding data"""

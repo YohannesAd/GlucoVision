@@ -17,8 +17,8 @@ from sqlalchemy.future import select
 from sqlalchemy import desc
 
 from app.core.database import AsyncSessionLocal
-from app.DatabaseModels.password_reset import PasswordResetToken
-from app.DatabaseModels.user import User
+from app.models.password_reset import PasswordResetToken
+from app.models.user import User
 
 
 async def get_latest_verification_code(email: str):

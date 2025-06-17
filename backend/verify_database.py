@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.database import AsyncSessionLocal
-from app.DatabaseModels.user import User
+from app.models.user import User
 
 
 async def verify_database_connection():

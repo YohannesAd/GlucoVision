@@ -26,8 +26,8 @@ from app.core.security import (
     verify_refresh_token,
     get_current_user
 )
-from app.DatabaseModels.user import User
-from app.DatabaseModels.password_reset import PasswordResetToken
+from app.models.user import User
+from app.models.password_reset import PasswordResetToken
 from app.schemas.auth import (
     UserLogin,
     UserRegister,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, Alert, View, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import {
@@ -139,11 +139,7 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
   };
 
   const handleAIChat = () => {
-    Alert.alert(
-      'AI Chat',
-      'Interactive AI chat will be available in a future update. You can ask questions about your glucose patterns and get personalized advice.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('AIChat');
   };
 
   return (
@@ -254,4 +250,3 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
     </ScreenContainer>
   );
 }
- 

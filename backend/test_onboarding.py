@@ -27,8 +27,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.core.database import AsyncSessionLocal
-from app.DatabaseModels.user import User
-from app.DatabaseModels.glucose_log import GlucoseLog
+from app.models.user import User
+from app.models.glucose_log import GlucoseLog
 
 
 async def complete_onboarding_for_user(email: str):

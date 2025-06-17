@@ -20,6 +20,7 @@ export type RootStackParamList = {
   AddLog: undefined;
   ViewLogs: undefined;
   AITrends: undefined;
+  AIChat: undefined;
   Profile: undefined;
   Account: undefined;
   Reports: undefined;

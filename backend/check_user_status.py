@@ -5,7 +5,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.core.database import AsyncSessionLocal
-from app.DatabaseModels.user import User
+from app.models.user import User
 
 async def check_user_status(email: str = "yohan@test.com"):
     """Check the current user's onboarding status"""

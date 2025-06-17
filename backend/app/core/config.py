@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     AI_MODEL_PATH: str = Field(default="MlModels", env="AI_MODEL_PATH")
     ENABLE_AI_INSIGHTS: bool = Field(default=True, env="ENABLE_AI_INSIGHTS")
     MIN_LOGS_FOR_AI: int = Field(default=4, env="MIN_LOGS_FOR_AI")
+
+    # OpenAI Configuration
+    OPENAI_API_KEY: str = Field(default="", env="OPENAI_API_KEY")
+    OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
+    OPENAI_MAX_TOKENS: int = Field(default=1000, env="OPENAI_MAX_TOKENS")
+    OPENAI_TEMPERATURE: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
+    ENABLE_OPENAI_CHAT: bool = Field(default=True, env="ENABLE_OPENAI_CHAT")
     
     # Email Settings (for notifications)
     SMTP_HOST: Optional[str] = Field(default=None, env="SMTP_HOST")

@@ -24,7 +24,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import get_async_session
-from app.DatabaseModels.user import User
+from app.models.user import User
 from app.schemas.auth import TokenData
 
 # Configure logging

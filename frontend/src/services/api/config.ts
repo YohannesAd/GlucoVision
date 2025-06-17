@@ -74,6 +74,8 @@ export const ENDPOINTS = {
     RECOMMENDATIONS: '/api/v1/ai/recommendations',
     RISK_ASSESSMENT: '/api/v1/ai/risk-assessment',
     PATTERNS: '/api/v1/ai/patterns',
+    CHAT: '/api/v1/ai/chat',
+    CONVERSATIONS: '/api/v1/ai/conversations',
   },
 
   // Reports

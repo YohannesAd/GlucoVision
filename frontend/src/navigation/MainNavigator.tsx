@@ -9,6 +9,7 @@ import AccountScreen from '../screens/account/AccountScreen';
 import AddLogScreen from '../screens/addlog/AddLogScreen';
 import ViewLogsScreen from '../screens/viewlogs/ViewLogsScreen';
 import AITrendsScreen from '../screens/aitrends/AITrendsScreen';
+import AIChatScreen from '../screens/aichat/AIChatScreen';
 
 const Tab = createBottomTabNavigator();
 const MainStack = createNativeStackNavigator<RootStackParamList>();
@@ -85,6 +86,15 @@ export default function MainNavigator() {
       <MainStack.Screen
         name="AITrends"
         component={AITrendsScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
+
+      <MainStack.Screen
+        name="AIChat"
+        component={AIChatScreen}
         options={{
           presentation: 'modal',
           animation: 'slide_from_right',

@@ -18,7 +18,7 @@ backend/
 │   │   ├── config.py     # Configuration management
 │   │   ├── database.py   # Database connection & setup
 │   │   └── security.py   # Authentication & security
-│   ├── DatabaseModels/   # SQLAlchemy database models
+│   ├── models/          # SQLAlchemy database models
 │   │   ├── user.py       # User model
 │   │   └── glucose_log.py # Glucose log model
 │   ├── schemas/          # Pydantic schemas (API contracts)

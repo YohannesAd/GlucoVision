@@ -13,3 +13,4 @@ export { useDataFetching } from './useDataFetching';
 export { useLogFilters } from './useLogFilters';
 export { useExport } from './useExport';
 export { useResendCode } from './useResendCode';
+export { useChat } from './useChat';

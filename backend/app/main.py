@@ -34,10 +34,11 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
 from app.api.v1.glucose import router as glucose_router
 from app.api.v1.ai_insights import router as ai_router
+from app.api.v1.ai_chat import router as ai_chat_router
 from app.api.v1.reports import router as reports_router
 
 # Import database models to ensure they're registered
-from app.DatabaseModels import user, glucose_log, password_reset
+from app.models import user, glucose_log, password_reset, chat
 
 
 @asynccontextmanager
@@ -189,6 +190,12 @@ app.include_router(
     ai_router,
     prefix="/api/v1/ai",
     tags=["🤖 AI Insights"]
+)
+
+app.include_router(
+    ai_chat_router,
+    prefix="/api/v1/ai",
+    tags=["💬 AI Chat"]
 )
 
 app.include_router(
