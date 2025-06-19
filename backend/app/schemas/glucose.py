@@ -14,7 +14,7 @@ Features:
 
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 
 
@@ -84,7 +84,10 @@ class GlucoseLogCreate(BaseModel):
         """Validate reading time is not in the future"""
         from datetime import timezone
 
-        # Convert to UTC for comparison
+        # Get current UTC time
+        now_utc = datetime.utcnow()
+
+        # Convert input to UTC for comparison
         if v.tzinfo is not None:
             # If timezone-aware, convert to UTC
             v_utc = v.astimezone(timezone.utc).replace(tzinfo=None)
@@ -92,8 +95,12 @@ class GlucoseLogCreate(BaseModel):
             # If timezone-naive, assume it's already in UTC
             v_utc = v
 
-        # Compare with current UTC time
-        if v_utc > datetime.utcnow():
+        # Add a small buffer (5 minutes) to account for clock differences
+        buffer_minutes = 5
+        future_threshold = now_utc + timedelta(minutes=buffer_minutes)
+
+        # Compare with current UTC time plus buffer
+        if v_utc > future_threshold:
             raise ValueError("Reading time cannot be in the future")
         return v
     

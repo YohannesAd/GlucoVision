@@ -87,8 +87,14 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         throw new Error('Please fix validation errors');
       }
 
-      // Combine date and time into a timestamp
+      // Combine date and time into a timestamp (treat as local time)
       const combinedDateTime = new Date(`${values.date}T${values.time}:00`);
+
+      // Ensure we're not sending a future time by checking against current time
+      const now = new Date();
+      if (combinedDateTime > now) {
+        throw new Error('Reading time cannot be in the future');
+      }
 
       const logData = {
         value: parseInt(values.value),

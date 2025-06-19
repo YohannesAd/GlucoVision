@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,10 +19,11 @@ interface DashboardScreenProps {
 }
 
 export default function DashboardScreen({ navigation }: DashboardScreenProps) {
-  const { auth } = useAppState();
+  const { auth, glucose } = useAppState();
   const { request } = useAPI();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [showPDFExport, setShowPDFExport] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
 
   // Fetch dashboard data using clean useAPI hook
   const { data: dashboardData, isLoading, error, refetch } = useDataFetching({
@@ -32,22 +33,42 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       }
 
       // Use your clean useAPI hook - backend data only
-      const [glucoseResult, aiResult] = await Promise.all([
-        request({
-          endpoint: API_ENDPOINTS.GLUCOSE.LOGS,
-          method: 'GET',
-          params: { limit: 50 }, // Increased limit to get more data
-          token: auth.state.token,
-          showErrorAlert: false
-        }),
-        request({
+      const glucoseResult = await request({
+        endpoint: API_ENDPOINTS.GLUCOSE.LOGS,
+        method: 'GET',
+        params: { limit: 50 }, // Increased limit to get more data
+        token: auth.state.token,
+        showErrorAlert: false
+      });
+
+      // Re-enable AI insights with error handling
+      let aiResult = { data: { data: { recommendations: [] } } };
+      try {
+        aiResult = await request({
           endpoint: API_ENDPOINTS.AI.INSIGHTS,
           method: 'GET',
-          params: { days: 30 }, // Increased to 30 days for better AI analysis
+          params: { days: 30 },
           token: auth.state.token,
           showErrorAlert: false
-        })
-      ]);
+        });
+      } catch (error) {
+        console.log('AI insights temporarily unavailable:', error);
+        // Use fallback AI insights
+        aiResult = {
+          data: {
+            data: {
+              recommendations: [
+                {
+                  title: "Keep Monitoring",
+                  message: "Continue tracking your glucose levels regularly for better insights.",
+                  confidence: 85,
+                  type: "general"
+                }
+              ]
+            }
+          }
+        };
+      }
 
       const glucoseData = glucoseResult.data || {};
       const logs = glucoseData.logs || []; // Extract logs array from response
@@ -92,15 +113,53 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         statistics: [
           { label: 'Today Avg', value: todayAverage || '--', color: 'primary' as const },
           { label: 'Time in Range', value: `${timeInRange}%`, color: 'green' as const },
-          { label: 'Total Readings', value: transformedLogs.length, color: 'blue' as const }
+          { label: 'Today Readings', value: todayLogs.length, color: 'blue' as const }
         ],
         recentLogs: transformedLogs.slice(0, 5),
         aiInsights: Array.isArray(aiRecommendations) ? aiRecommendations.slice(0, 2) : []
       };
     },
-    dependencies: [auth?.state?.token],
+    dependencies: [auth?.state?.token], // Only depend on auth token, not glucose logs to prevent loops
     onError: (error) => console.error('Failed to load dashboard data:', error)
   });
+
+  // Initialize glucose data on mount
+  useEffect(() => {
+    if (auth?.state?.token && glucose?.actions?.fetchLogs) {
+      glucose.actions.fetchLogs().catch(console.error);
+    }
+  }, [auth?.state?.token]);
+
+  // Manual refresh function for when user adds new logs
+  const handleDataRefresh = useCallback(() => {
+    const now = Date.now();
+    // Prevent refreshing more than once every 5 seconds
+    if (now - lastRefreshTime < 5000) {
+      console.log('Dashboard: Refresh throttled, too soon since last refresh');
+      return;
+    }
+
+    console.log('Dashboard: Manual refresh triggered');
+    setLastRefreshTime(now);
+    refetch();
+  }, [refetch, lastRefreshTime]);
+
+  // Controlled refresh - only when user explicitly adds a log
+  // Temporarily disabled automatic refresh to prevent infinite loops
+  // TODO: Implement proper event-based refresh when user adds new logs
+  /*
+  useEffect(() => {
+    // Only refresh if we have glucose logs and this is after initial load
+    if (glucose?.state?.logs?.length > 0 && dashboardData) {
+      console.log('Dashboard: Glucose data may have changed, scheduling refresh');
+      const timeoutId = setTimeout(() => {
+        handleDataRefresh();
+      }, 3000); // Longer delay to prevent rapid refreshes
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [glucose?.state?.logs?.length, handleDataRefresh, dashboardData]);
+  */
 
   // Navigation handlers
   const handleMenuNavigation = (screen: string) => {
@@ -139,6 +198,17 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
       >
         {/* Header */}
         <DashboardHeader onMenuPress={() => setIsMenuVisible(true)} />
+
+        {/* Manual Refresh Button */}
+        <View className="mx-4 mt-2">
+          <Button
+            title="🔄 Refresh Data"
+            onPress={handleDataRefresh}
+            variant="outline"
+            size="small"
+            disabled={isLoading}
+          />
+        </View>
 
         {/* Today's Statistics */}
         <DataSection
@@ -180,6 +250,10 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           isLoading={isLoading}
           error={error}
           isEmpty={!dashboardData?.aiInsights?.length}
+          emptyTitle="AI Insights Loading"
+          emptyMessage="Add more glucose readings to get personalized AI insights"
+          emptyActionText="Add Reading"
+          onEmptyAction={handleAddLog}
           className="mx-4 mt-4"
           headerAction={
             <Button

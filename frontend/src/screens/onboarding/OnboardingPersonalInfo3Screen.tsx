@@ -42,11 +42,17 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
       }
 
       const step3Data = {
-        glucose_readings: logs.map(log => ({
-          glucose_value: parseInt(log.value),
-          reading_time: new Date().toISOString(), // Use current time as default
-          reading_type: log.timeOfDay
-        })),
+        glucose_readings: logs.map((log, index) => {
+          // Create timestamps spread over the last 24 hours for variety
+          const hoursAgo = (index + 1) * 6; // 6, 12, 18, 24 hours ago
+          const readingTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+
+          return {
+            glucose_value: parseInt(log.value),
+            reading_time: readingTime.toISOString(),
+            reading_type: log.timeOfDay
+          };
+        }),
         preferred_unit: 'mg/dL',
         target_range_min: 80,
         target_range_max: 180,
