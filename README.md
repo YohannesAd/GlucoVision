@@ -18,7 +18,7 @@ This project is inspired by my father, who is diabetic, and combines cutting-edg
 | ------------------ | -------------------------------------- | ------------------------------------------------------------------- |
 | **Frontend**       | React Native + TypeScript + NativeWind | Cross-platform mobile development with type safety and Tailwind CSS |
 | **Backend**        | FastAPI + Python 3.11+                 | High-performance, modern API framework with auto-documentation      |
-| **Database**       | MongoDB + Motor (Async)                | Flexible NoSQL database for rapid development and scalability       |
+| **Database**       | PostgreSQL + SQLAlchemy                | Robust, scalable database with async support and Alembic migrations |
 | **Authentication** | JWT + bcrypt + FastAPI Security        | Secure, mobile-ready authentication system                          |
 | **AI Integration** | OpenAI GPT-4 API                       | Advanced AI chat and recommendations for diabetes management        |
 | **API Docs**       | Auto-generated Swagger/OpenAPI         | Professional API documentation                                      |

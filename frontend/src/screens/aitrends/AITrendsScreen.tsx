@@ -113,17 +113,35 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
 
       if (filteredLogs.length === 0) return null;
 
+      // Group logs by date and calculate average for each day
+      const logsByDate = new Map();
+
+      filteredLogs.forEach((log: any) => {
+        const date = new Date(log.timestamp);
+        const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+
+        if (!logsByDate.has(dateKey)) {
+          logsByDate.set(dateKey, []);
+        }
+        logsByDate.get(dateKey).push(log.value);
+      });
+
+      // Convert to arrays with unique dates only
+      const uniqueDates = Array.from(logsByDate.keys());
+      const averageValues = uniqueDates.map(dateKey => {
+        const values = logsByDate.get(dateKey);
+        return Math.round(values.reduce((sum: number, val: number) => sum + val, 0) / values.length);
+      });
+
+      // For weekly view, ensure we show max 7 unique dates
+      const maxPoints = selectedPeriod === 'week' ? 7 : uniqueDates.length;
+      const finalDates = uniqueDates.slice(-maxPoints);
+      const finalValues = averageValues.slice(-maxPoints);
+
       return {
-        labels: filteredLogs.map((log: any) => {
-          const date = new Date(log.timestamp);
-          return selectedPeriod === 'week'
-            ? `${date.getMonth() + 1}/${date.getDate()}`
-            : selectedPeriod === 'month'
-            ? `${date.getMonth() + 1}/${date.getDate()}`
-            : `${date.getMonth() + 1}/${date.getDate()}`;
-        }),
+        labels: finalDates,
         datasets: [{
-          data: filteredLogs.map((log: any) => log.value),
+          data: finalValues,
           color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
           strokeWidth: 3,
         }]

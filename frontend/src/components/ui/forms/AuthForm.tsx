@@ -27,6 +27,20 @@ import { useAuth } from '../../../context/AuthContext';
  * - ChangePasswordScreen (old/new password)
  */
 
+interface FormField {
+  key: string;
+  label: string;
+  type?: 'email-address' | 'default';
+  secureTextEntry?: boolean;
+}
+
+interface FormField {
+  key: string;
+  label: string;
+  type?: 'email-address' | 'default';
+  secureTextEntry?: boolean;
+}
+
 interface AuthFormProps {
   formType: 'login' | 'signup' | 'resetPassword' | 'changePassword' | 'resetPasswordConfirm';
   title: string;
@@ -167,20 +181,20 @@ export default function AuthForm({
   };
 
   // Form field configurations
-  const FORM_FIELDS = {
+  const FORM_FIELDS: Record<string, FormField[]> = {
     login: [
-      { key: 'email', label: 'Email', type: 'email-address' as const },
+      { key: 'email', label: 'Email', type: 'email-address' },
       { key: 'password', label: 'Password', secureTextEntry: true }
     ],
     signup: [
       { key: 'firstName', label: 'First Name' },
       { key: 'lastName', label: 'Last Name' },
-      { key: 'email', label: 'Email', type: 'email-address' as const },
+      { key: 'email', label: 'Email', type: 'email-address' },
       { key: 'password', label: 'Password', secureTextEntry: true },
       { key: 'confirmPassword', label: 'Confirm Password', secureTextEntry: true }
     ],
     resetPassword: [
-      { key: 'email', label: 'Email', type: 'email-address' as const }
+      { key: 'email', label: 'Email', type: 'email-address' }
     ],
     changePassword: [
       { key: 'currentPassword', label: 'Current Password', secureTextEntry: true },
@@ -200,13 +214,6 @@ export default function AuthForm({
     resetPassword: 'Send Reset Link',
     changePassword: 'Update Password',
     resetPasswordConfirm: 'Reset Password'
-  };
-
-  const SUCCESS_MESSAGES = {
-    signup: 'Account created successfully!',
-    resetPassword: 'Reset link sent to your email!',
-    changePassword: 'Password updated successfully!',
-    resetPasswordConfirm: 'Password reset successfully!'
   };
 
   const formFields = FORM_FIELDS[formType] || [];

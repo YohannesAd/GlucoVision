@@ -79,7 +79,7 @@ export default function ViewLogsScreen({ navigation }: ViewLogsScreenProps) {
     immediate: !!auth?.state?.token
   });
 
-  const glucoseUnit = userData?.preferences?.glucoseUnit || 'mg/dL';
+  const glucoseUnit = userData?.preferredUnit || 'mg/dL';
 
   // Apply filters to logs
   const filteredLogs = useMemo(() => {

@@ -33,7 +33,6 @@ interface GlucoseState {
 // User state
 interface UserState {
   profile: any | null;
-  preferences: any | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -74,7 +73,6 @@ const initialGlucoseState: GlucoseState = {
 
 const initialUserState: UserState = {
   profile: null,
-  preferences: null,
   isLoading: false,
   error: null
 };
@@ -127,7 +125,6 @@ export function useAppState(module?: StateModule) {
     },
     user: {
       profile: userContext?.state?.profile || null,
-      preferences: userContext?.state?.preferences || null,
       isLoading: userContext?.state?.isLoading || false,
       error: userContext?.state?.error || null
     },

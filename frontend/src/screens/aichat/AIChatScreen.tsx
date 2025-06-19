@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView,
-  Platform, TextInput
+  Platform, TextInput, Animated
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
@@ -119,17 +119,62 @@ export default function AIChatScreen({ navigation }: AIChatScreenProps) {
     );
   };
 
-  const renderTypingIndicator = () => {
+  const TypingIndicator = () => {
+    const dot1 = useRef(new Animated.Value(0.3)).current;
+    const dot2 = useRef(new Animated.Value(0.3)).current;
+    const dot3 = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+      const animateDots = () => {
+        const createAnimation = (dot: Animated.Value, delay: number) => {
+          return Animated.loop(
+            Animated.sequence([
+              Animated.delay(delay),
+              Animated.timing(dot, {
+                toValue: 1,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+              Animated.timing(dot, {
+                toValue: 0.3,
+                duration: 400,
+                useNativeDriver: true,
+              }),
+            ])
+          );
+        };
+
+        Animated.parallel([
+          createAnimation(dot1, 0),
+          createAnimation(dot2, 200),
+          createAnimation(dot3, 400),
+        ]).start();
+      };
+
+      if (chatState.isTyping) {
+        animateDots();
+      }
+    }, [chatState.isTyping, dot1, dot2, dot3]);
+
     if (!chatState.isTyping) return null;
-    
+
     return (
       <View className="items-start mb-4">
         <View className="bg-gray-100 p-4 rounded-2xl rounded-bl-md">
           <View className="flex-row items-center">
             <View className="flex-row space-x-1">
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-              <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <Animated.View
+                className="w-2 h-2 bg-gray-400 rounded-full"
+                style={{ opacity: dot1 }}
+              />
+              <Animated.View
+                className="w-2 h-2 bg-gray-400 rounded-full"
+                style={{ opacity: dot2 }}
+              />
+              <Animated.View
+                className="w-2 h-2 bg-gray-400 rounded-full"
+                style={{ opacity: dot3 }}
+              />
             </View>
             <Text className="ml-2 text-gray-500 text-sm">AI is thinking...</Text>
           </View>
@@ -180,7 +225,7 @@ export default function AIChatScreen({ navigation }: AIChatScreenProps) {
           )}
 
           {chatState.messages.map(renderMessage)}
-          {renderTypingIndicator()}
+          <TypingIndicator />
         </ScrollView>
 
         {/* Quick Suggestions */}

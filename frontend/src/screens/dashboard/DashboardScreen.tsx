@@ -51,7 +51,6 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           showErrorAlert: false
         });
       } catch (error) {
-        console.log('AI insights temporarily unavailable:', error);
         // Use fallback AI insights with correct structure
         aiResult = {
           data: {
@@ -90,12 +89,9 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           }).length / todayLogs.length) * 100)
         : 0;
 
-      // Process AI insights with debugging
-      console.log('AI Result:', aiResult);
+      // Process AI insights
       const aiData = aiResult.data?.data || aiResult.data || {};
       const aiRecommendations = aiData.recommendations || [];
-      console.log('AI Recommendations:', aiRecommendations);
-      console.log('Total glucose logs for AI:', logs?.length || 0);
 
       // Transform backend logs to frontend format
       const transformedLogs = Array.isArray(logs) ? logs.map((log: any) => ({
@@ -135,11 +131,9 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     const now = Date.now();
     // Prevent refreshing more than once every 5 seconds
     if (now - lastRefreshTime < 5000) {
-      console.log('Dashboard: Refresh throttled, too soon since last refresh');
       return;
     }
 
-    console.log('Dashboard: Manual refresh triggered');
     setLastRefreshTime(now);
     refetch();
   }, [refetch, lastRefreshTime]);

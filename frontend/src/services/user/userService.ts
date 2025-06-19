@@ -24,6 +24,12 @@ export interface UserProfile {
   usesInsulin?: boolean;
   currentMedications?: string[];
   sleepDuration?: number;
+  preferredUnit?: string;
+  targetRangeMin?: number;
+  targetRangeMax?: number;
+  reminderTimes?: string[];
+  privacySettings?: any;
+  notificationPreferences?: any;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +92,12 @@ class UserService {
         usesInsulin: data.uses_insulin,
         currentMedications: data.current_medications,
         sleepDuration: data.sleep_duration,
+        preferredUnit: data.preferred_unit,
+        targetRangeMin: data.target_range_min,
+        targetRangeMax: data.target_range_max,
+        reminderTimes: data.reminder_times,
+        privacySettings: data.privacy_settings,
+        notificationPreferences: data.notification_preferences,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };

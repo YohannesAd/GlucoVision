@@ -26,7 +26,7 @@ interface AddLogScreenProps {
 
 export default function AddLogScreen({ navigation }: AddLogScreenProps) {
   const { auth, glucose, user } = useAppState();
-  const glucoseUnit = user?.state?.profile?.preferences?.glucoseUnit || 'mg/dL';
+  const glucoseUnit = user?.state?.profile?.preferredUnit || 'mg/dL';
 
   // Generate date options (last 7 days)
   const generateDateOptions = () => {

@@ -16,9 +16,11 @@ export class RecommendationActions {
 
   // Main handler for insight actions - simplified to only show reminder
   handleInsightAction = (insight: AIInsight) => {
+    const recommendation = insight.recommendation || insight.message || 'AI recommendation';
+
     Alert.alert(
       '⏰ Set Reminder',
-      `Set a reminder for this AI recommendation:\n\n"${insight.recommendation}"\n\nConfidence: ${insight.confidence}%\n\nWhen would you like to be reminded?`,
+      `Set a reminder for this AI recommendation:\n\n"${recommendation}"\n\nConfidence: ${insight.confidence}%\n\nWhen would you like to be reminded?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -42,6 +44,8 @@ export class RecommendationActions {
   // Enhanced reminder scheduling with real notifications
   private scheduleReminder = async (insight: AIInsight, amount: number, unit: string) => {
     try {
+      const recommendation = insight.recommendation || insight.message || 'AI recommendation';
+
       // Calculate the reminder time
       const reminderTime = new Date(Date.now() + this.getMilliseconds(amount, unit));
 
@@ -49,7 +53,7 @@ export class RecommendationActions {
       const reminder = {
         id: `ai_reminder_${Date.now()}`,
         title: '💡 AI Recommendation Reminder',
-        message: insight.recommendation,
+        message: recommendation,
         confidence: insight.confidence,
         scheduledFor: reminderTime,
         type: insight.factors?.[0] || 'general',
@@ -63,7 +67,7 @@ export class RecommendationActions {
       let notificationId: string | null = null;
       try {
         notificationId = await notificationService.scheduleAIRecommendationReminder({
-          recommendation: insight.recommendation,
+          recommendation: recommendation,
           confidence: insight.confidence,
           scheduledTime: reminderTime,
           reminderType: unit as 'hour' | 'day' | 'week'
@@ -83,8 +87,8 @@ export class RecommendationActions {
                       'weekly at this time';
 
       const successMessage = notificationId
-        ? `🔔 Notification reminder set ${timeText}!\n\n💡 "${insight.recommendation}"\n\n⏰ You'll be reminded on: ${reminderTime.toLocaleString()}\n\n📱 Make sure notifications are enabled in your device settings.`
-        : `⏰ Reminder scheduled ${timeText}!\n\n💡 "${insight.recommendation}"\n\n📅 Scheduled for: ${reminderTime.toLocaleString()}\n\n⚠️ Note: Push notifications may not be available, but your reminder is saved.`;
+        ? `🔔 Notification reminder set ${timeText}!\n\n💡 "${recommendation}"\n\n⏰ You'll be reminded on: ${reminderTime.toLocaleString()}\n\n📱 Make sure notifications are enabled in your device settings.`
+        : `⏰ Reminder scheduled ${timeText}!\n\n💡 "${recommendation}"\n\n📅 Scheduled for: ${reminderTime.toLocaleString()}\n\n⚠️ Note: Push notifications may not be available, but your reminder is saved.`;
 
       Alert.alert(
         '✅ Reminder Set Successfully!',

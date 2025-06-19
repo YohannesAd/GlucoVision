@@ -40,6 +40,7 @@ export const ENDPOINTS = {
     FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
     VERIFY_RESET_CODE: '/api/v1/auth/verify-reset-code',
     RESET_PASSWORD: '/api/v1/auth/reset-password',
+    VERIFY_EMAIL: '/api/v1/auth/verify-email',
     ME: '/api/v1/auth/me',
     VERIFY_TOKEN: '/api/v1/auth/verify-token',
   },
@@ -48,6 +49,7 @@ export const ENDPOINTS = {
   USER: {
     PROFILE: '/api/v1/users/profile',
     UPDATE_PROFILE: '/api/v1/users/profile',
+    CHANGE_PASSWORD: '/api/v1/users/change-password',
     ONBOARDING_STATUS: '/api/v1/users/onboarding/status',
     ONBOARDING_STEP1: '/api/v1/users/onboarding/step1',
     ONBOARDING_STEP2: '/api/v1/users/onboarding/step2',
@@ -85,9 +87,19 @@ export const ENDPOINTS = {
     EXPORT_DATA: '/api/v1/reports/export-data',
   },
 
-  // Health Check
+  // Health Check & Metrics
   HEALTH: {
     CHECK: '/health',
     ROOT: '/',
+    METRICS: '/api/v1/health/metrics',
+    GOALS: '/api/v1/health/goals',
+    REMINDERS: '/api/v1/health/reminders',
+  },
+
+  // Analytics
+  ANALYTICS: {
+    INSIGHTS: '/api/v1/analytics/insights',
+    REPORTS: '/api/v1/analytics/reports',
+    PREDICTIONS: '/api/v1/analytics/predictions',
   },
 } as const;

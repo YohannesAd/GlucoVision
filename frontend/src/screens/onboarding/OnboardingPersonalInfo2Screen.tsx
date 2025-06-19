@@ -80,9 +80,16 @@ export default function OnboardingPersonalInfo2Screen({ navigation }: Onboarding
       console.log('Step 2 API Result:', result);
 
       if (!result.success) {
-        const errorMessage = typeof result.error === 'string'
-          ? result.error
-          : result.error?.message || result.error?.detail || 'Failed to save information';
+        let errorMessage = 'Failed to save information';
+
+        if (typeof result.error === 'string') {
+          errorMessage = result.error;
+        } else if (result.error && typeof result.error === 'object') {
+          // Handle error object with potential message or detail properties
+          const errorObj = result.error as any;
+          errorMessage = errorObj.message || errorObj.detail || errorMessage;
+        }
+
         throw new Error(errorMessage);
       }
     },

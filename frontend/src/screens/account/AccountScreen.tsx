@@ -82,13 +82,27 @@ export default function AccountScreen({ navigation }: AccountScreenProps) {
           style: 'destructive',
           onPress: async () => {
             try {
-              // Call delete account API
-              const response = await apiCall(API_ENDPOINTS.USER.DELETE_ACCOUNT, {
-                method: 'DELETE'
+              if (!auth?.state?.token) {
+                throw new Error('Authentication required');
+              }
+
+              // Call delete account API using the useAPI hook
+              const response = await request({
+                endpoint: API_ENDPOINTS.USER.DELETE_ACCOUNT,
+                method: 'DELETE',
+                token: auth.state.token,
+                showErrorAlert: false
               });
 
               if (response.success) {
-                // Show success message and logout
+                // Account deleted successfully - clear auth state immediately
+                // Don't call logout API since token is now invalid
+                if (auth?.actions?.logout) {
+                  // Clear local auth state without API call
+                  auth.actions.logout();
+                }
+
+                // Show success message and navigate
                 Alert.alert(
                   'Account Deleted',
                   'Your account has been successfully deleted. You will now be logged out.',
@@ -96,12 +110,8 @@ export default function AccountScreen({ navigation }: AccountScreenProps) {
                     {
                       text: 'OK',
                       onPress: () => {
-                        // Clear auth state and navigate to login
-                        auth.actions.logout();
-                        navigation.reset({
-                          index: 0,
-                          routes: [{ name: 'Login' }]
-                        });
+                        // Navigate to login screen
+                        navigation.navigate('Login');
                       }
                     }
                   ]
