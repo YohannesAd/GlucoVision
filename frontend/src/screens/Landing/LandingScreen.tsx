@@ -59,7 +59,7 @@ export default function LandingScreen({ navigation }: LandingScreenProps) {
           <View className="w-full">
             <FeatureItem
               icon="📊"
-              text="Smart glucose tracking with AI insights"
+              text="Smart glucose tracking with AI chat box assitance"
               iconBackgroundColor="bg-primary"
             />
 

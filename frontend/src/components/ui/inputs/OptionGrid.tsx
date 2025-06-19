@@ -3,12 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 
 /**
  * OptionGrid - Reusable grid of selectable options
- * 
- * Features:
- * - Flexible grid layout
- * - Single or multiple selection
- * - Consistent styling
- * - Professional appearance
+
  */
 
 interface Option {
@@ -56,7 +51,7 @@ export default function OptionGrid({
           <TouchableOpacity
             key={option.value}
             onPress={() => onSelect(option.value)}
-            className={`flex-1 ${getColumnWidth()} py-3 px-3 rounded-xl border ${
+            className={`flex-1 ${getColumnWidth()} py-2 px-3 rounded-lg border ${
               selectedValue === option.value
                 ? 'bg-primary border-primary'
                 : 'bg-gray-50 border-gray-200'

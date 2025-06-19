@@ -43,9 +43,10 @@ export default function OnboardingPersonalInfo3Screen({ navigation }: Onboarding
 
       const step3Data = {
         glucose_readings: logs.map((log, index) => {
-          // Create timestamps spread over the last 24 hours for variety
-          const hoursAgo = (index + 1) * 6; // 6, 12, 18, 24 hours ago
-          const readingTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+          // Use today's date for all onboarding glucose readings
+          // This ensures they show up with the correct date when displayed
+          const today = new Date();
+          const readingTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
           return {
             glucose_value: parseInt(log.value),

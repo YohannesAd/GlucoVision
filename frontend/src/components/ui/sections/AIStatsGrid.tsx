@@ -6,18 +6,7 @@ import { useUser } from '../../../context/UserContext';
 
 /**
  * AIInsightsSection - Main AI-powered insights hero section
- *
- * Features:
- * - AI-generated recommendations and insights (main app feature)
- * - Trend analysis with visual indicators
- * - Personalized advice based on user data and onboarding info
- * - Professional medical design with emphasis on AI capabilities
- * - Structured for easy backend integration
- *
- * Props:
- * - aiInsight: AI insight data (will come from backend)
- * - onAskAI: Function to handle "Ask AI More" action
- * - onViewDetails: Function to handle "View Details" action
+
  */
 
 interface AIInsightsSectionProps {
