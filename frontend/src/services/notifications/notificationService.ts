@@ -110,14 +110,41 @@ class NotificationService {
     return this.scheduleNotification({
       title: 'Medication Reminder',
       body: `Time to take your ${params.medicationName}`,
-      data: { 
+      data: {
         type: 'medication_reminder',
-        medication: params.medicationName 
+        medication: params.medicationName
       },
       trigger: {
         type: params.frequency,
         hour: params.time.hour,
         minute: params.time.minute,
+      },
+    });
+  }
+
+  /**
+   * Schedule AI recommendation reminder
+   */
+  async scheduleAIRecommendationReminder(params: {
+    recommendation: string;
+    confidence: number;
+    scheduledTime: Date;
+    reminderType: 'hour' | 'day' | 'week';
+  }): Promise<string | null> {
+    const timeText = params.reminderType === 'hour' ? 'hourly' :
+                    params.reminderType === 'day' ? 'daily' : 'weekly';
+
+    return this.scheduleNotification({
+      title: '💡 AI Recommendation Reminder',
+      body: `Remember: ${params.recommendation}`,
+      data: {
+        type: 'ai_recommendation_reminder',
+        confidence: params.confidence,
+        reminderType: params.reminderType
+      },
+      trigger: {
+        type: 'time',
+        time: params.scheduledTime,
       },
     });
   }

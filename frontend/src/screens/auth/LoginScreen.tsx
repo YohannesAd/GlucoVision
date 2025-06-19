@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { ScreenContainer, FormContainer, AuthForm, NavigationLink } from '../../components/ui';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,11 +37,27 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           subtitle="Sign in to continue managing your health"
           onSuccess={handleLoginSuccess}
           footerContent={
-            <NavigationLink
-              questionText="Don't have an account?"
-              actionText="Sign Up"
-              onPress={() => navigation.navigate('SignUp')}
-            />
+            <View>
+              {/* Forgot Password Link */}
+              <View className="mb-6">
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ForgotPassword')}
+                  className="py-3 px-4 rounded-lg"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-primary text-center font-semibold text-base">
+                    🔐 Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Sign Up Link */}
+              <NavigationLink
+                questionText="Don't have an account?"
+                actionText="Sign Up"
+                onPress={() => navigation.navigate('SignUp')}
+              />
+            </View>
           }
         />
       </FormContainer>

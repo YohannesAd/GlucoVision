@@ -250,5 +250,19 @@ export const VALIDATION_RULES = {
         return null;
       }
     }
+  },
+  resetPasswordConfirm: {
+    newPassword: { required: true, type: 'password' as const },
+    confirmPassword: {
+      required: true,
+      minLength: 8,
+      custom: (value: string, allValues?: { [key: string]: string }) => {
+        const newPassword = allValues?.newPassword || '';
+        if (value && newPassword && value !== newPassword) {
+          return 'Passwords do not match';
+        }
+        return null;
+      }
+    }
   }
 };

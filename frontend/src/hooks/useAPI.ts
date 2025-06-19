@@ -214,8 +214,9 @@ export const API_ENDPOINTS = {
     SIGNUP: '/api/v1/auth/register',
     LOGOUT: '/api/v1/auth/logout',
     REFRESH: '/api/v1/auth/refresh',
+    FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
+    VERIFY_RESET_CODE: '/api/v1/auth/verify-reset-code',
     RESET_PASSWORD: '/api/v1/auth/reset-password',
-    VERIFY_CODE: '/api/v1/auth/verify-reset-code',
     CHANGE_PASSWORD: '/api/v1/auth/change-password'
   },
 

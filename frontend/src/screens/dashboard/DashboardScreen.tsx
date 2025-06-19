@@ -7,6 +7,7 @@ import {
   Button, DashboardHeader, NavigationMenu, PDFExportSection, PDFExportModal
 } from '../../components/ui';
 import { useAppState, useDataFetching, useAPI, API_ENDPOINTS } from '../../hooks';
+import { useRecommendationActions } from '../../utils/RecommendationActions';
 
 /**
  * DashboardScreen
@@ -25,24 +26,22 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
   const [showPDFExport, setShowPDFExport] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
 
-  // Fetch dashboard data using clean useAPI hook
+  // Add recommendation actions for direct reminder functionality
+  const recommendationActions = useRecommendationActions(navigation);
   const { data: dashboardData, isLoading, error, refetch } = useDataFetching({
     fetchFunction: async () => {
       if (!auth?.state?.token) {
         throw new Error('Authentication required');
       }
 
-      // Use your clean useAPI hook - backend data only
       const glucoseResult = await request({
         endpoint: API_ENDPOINTS.GLUCOSE.LOGS,
         method: 'GET',
-        params: { limit: 50 }, // Increased limit to get more data
+        params: { limit: 50 }, 
         token: auth.state.token,
         showErrorAlert: false
       });
-
-      // Re-enable AI insights with error handling
-      let aiResult = { data: { data: { recommendations: [] } } };
+      let aiResult: any = { data: { data: { recommendations: [] } } };
       try {
         aiResult = await request({
           endpoint: API_ENDPOINTS.AI.INSIGHTS,
@@ -53,7 +52,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
         });
       } catch (error) {
         console.log('AI insights temporarily unavailable:', error);
-        // Use fallback AI insights
+        // Use fallback AI insights with correct structure
         aiResult = {
           data: {
             data: {
@@ -62,7 +61,8 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
                   title: "Keep Monitoring",
                   message: "Continue tracking your glucose levels regularly for better insights.",
                   confidence: 85,
-                  type: "general"
+                  type: "general",
+                  action: "Continue tracking your glucose levels regularly for better insights."
                 }
               ]
             }
@@ -143,23 +143,6 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
     setLastRefreshTime(now);
     refetch();
   }, [refetch, lastRefreshTime]);
-
-  // Controlled refresh - only when user explicitly adds a log
-  // Temporarily disabled automatic refresh to prevent infinite loops
-  // TODO: Implement proper event-based refresh when user adds new logs
-  /*
-  useEffect(() => {
-    // Only refresh if we have glucose logs and this is after initial load
-    if (glucose?.state?.logs?.length > 0 && dashboardData) {
-      console.log('Dashboard: Glucose data may have changed, scheduling refresh');
-      const timeoutId = setTimeout(() => {
-        handleDataRefresh();
-      }, 3000); // Longer delay to prevent rapid refreshes
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [glucose?.state?.logs?.length, handleDataRefresh, dashboardData]);
-  */
 
   // Navigation handlers
   const handleMenuNavigation = (screen: string) => {
@@ -279,7 +262,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
                 createdAt: new Date().toISOString(),
                 factors: [insight.type || 'General']
               }}
-              onAction={() => navigation.navigate('AITrends')}
+              onAction={recommendationActions.handleInsightAction}
               className="mb-4"
             />
           ))}

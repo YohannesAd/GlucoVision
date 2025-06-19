@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAPI, API_ENDPOINTS } from './useAPI';
 
 /**
  * useResendCode - Reusable hook for resend code functionality
@@ -24,6 +25,7 @@ export function useResendCode({
 }: UseResendCodeProps): UseResendCodeReturn {
   const [canResend, setCanResend] = useState(false);
   const [resendTimer, setResendTimer] = useState(initialTimer);
+  const { request } = useAPI();
 
   // Timer effect
   useEffect(() => {
@@ -40,13 +42,14 @@ export function useResendCode({
     if (!canResend) return;
 
     try {
-      const response = await fetch('/api/v1/auth/forgot-password', {
+      const result = await request({
+        endpoint: API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        data: { email },
+        showErrorAlert: false
       });
 
-      if (response.ok) {
+      if (result.success) {
         setResendTimer(initialTimer);
         setCanResend(false);
         if (resetForm) resetForm();

@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import FormInput from '../inputs/FormInput';
 import Button from '../buttons/Button';
 import ErrorMessage from '../messages/ErrorMessage';
-import { useFormValidation, VALIDATION_RULES } from '../../../hooks';
+import { useFormValidation, VALIDATION_RULES, useAPI, API_ENDPOINTS } from '../../../hooks';
 import { useAuth } from '../../../context/AuthContext';
 
 /**
@@ -28,12 +28,13 @@ import { useAuth } from '../../../context/AuthContext';
  */
 
 interface AuthFormProps {
-  formType: 'login' | 'signup' | 'resetPassword' | 'changePassword';
+  formType: 'login' | 'signup' | 'resetPassword' | 'changePassword' | 'resetPasswordConfirm';
   title: string;
   subtitle?: string;
   onSuccess?: (data?: any) => void;
   footerContent?: React.ReactNode;
   className?: string;
+  initialValues?: Record<string, any>;
 }
 
 export default function AuthForm({
@@ -42,11 +43,16 @@ export default function AuthForm({
   subtitle,
   onSuccess,
   footerContent,
-  className = ''
+  className = '',
+  initialValues = {}
 }: AuthFormProps) {
 
   // Get validation rules for form type
   const validationRules = VALIDATION_RULES[formType];
+
+  console.log('AuthForm - formType:', formType);
+  console.log('AuthForm - initialValues:', initialValues);
+  console.log('AuthForm - validationRules:', validationRules);
 
   // Initialize form validation
   const {
@@ -56,10 +62,14 @@ export default function AuthForm({
     setValue,
     validateAll,
     resetForm
-  } = useFormValidation({ rules: validationRules });
+  } = useFormValidation({
+    rules: validationRules || {},
+    initialValues: initialValues || {}
+  });
 
   // Use AuthContext directly instead of useAppState
   const authContext = useAuth();
+  const { request } = useAPI();
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -95,15 +105,49 @@ export default function AuthForm({
           break;
 
         case 'resetPassword':
-          // TODO: Implement reset password
-          console.log('Reset password for:', values.email);
-          result = { success: true };
+          // Use the proper API hook for forgot password
+          const resetResult = await request({
+            endpoint: API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
+            method: 'POST',
+            data: { email: values.email },
+            showErrorAlert: false
+          });
+
+          if (!resetResult.success) {
+            throw new Error(resetResult.error || 'Failed to send reset email');
+          }
+
+          result = { success: true, email: values.email };
           break;
 
         case 'changePassword':
           // Use authService to change password
           const { authService } = await import('../../../services/auth/authService');
           await authService.changePassword(values.currentPassword, values.newPassword);
+          result = { success: true };
+          break;
+
+        case 'resetPasswordConfirm':
+          // Use the proper API hook for reset password confirmation
+          console.log('Reset password values:', values);
+
+          const resetConfirmResult = await request({
+            endpoint: API_ENDPOINTS.AUTH.RESET_PASSWORD,
+            method: 'POST',
+            data: {
+              token: values.token,
+              new_password: values.newPassword,
+              confirm_password: values.confirmPassword
+            },
+            showErrorAlert: false
+          });
+
+          console.log('Reset password result:', resetConfirmResult);
+
+          if (!resetConfirmResult.success) {
+            throw new Error(resetConfirmResult.error || 'Failed to reset password');
+          }
+
           result = { success: true };
           break;
 
@@ -142,6 +186,10 @@ export default function AuthForm({
       { key: 'currentPassword', label: 'Current Password', secureTextEntry: true },
       { key: 'newPassword', label: 'New Password', secureTextEntry: true },
       { key: 'confirmPassword', label: 'Confirm New Password', secureTextEntry: true }
+    ],
+    resetPasswordConfirm: [
+      { key: 'newPassword', label: 'New Password', secureTextEntry: true },
+      { key: 'confirmPassword', label: 'Confirm New Password', secureTextEntry: true }
     ]
   };
 
@@ -150,13 +198,15 @@ export default function AuthForm({
     login: 'Sign In',
     signup: 'Create Account',
     resetPassword: 'Send Reset Link',
-    changePassword: 'Update Password'
+    changePassword: 'Update Password',
+    resetPasswordConfirm: 'Reset Password'
   };
 
   const SUCCESS_MESSAGES = {
     signup: 'Account created successfully!',
     resetPassword: 'Reset link sent to your email!',
-    changePassword: 'Password updated successfully!'
+    changePassword: 'Password updated successfully!',
+    resetPasswordConfirm: 'Password reset successfully!'
   };
 
   const formFields = FORM_FIELDS[formType] || [];

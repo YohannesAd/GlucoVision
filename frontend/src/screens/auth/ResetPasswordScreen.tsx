@@ -24,7 +24,19 @@ interface ResetPasswordScreenProps {
 }
 
 export default function ResetPasswordScreen({ navigation, route }: ResetPasswordScreenProps) {
-  const { token, email } = route.params;
+  console.log('ResetPasswordScreen - route.params:', route.params);
+
+  const params = route.params || {};
+  const { token, email } = params;
+
+  console.log('ResetPasswordScreen - extracted params:', { token, email });
+
+  // Safety check for required params
+  if (!token || !email) {
+    console.error('ResetPasswordScreen - Missing required params:', { token, email, params });
+    navigation.goBack();
+    return null;
+  }
 
   // Handle successful password reset
   const handleResetPasswordSuccess = () => {
@@ -37,10 +49,11 @@ export default function ResetPasswordScreen({ navigation, route }: ResetPassword
       <FormContainer>
         {/* Reset Password Form - All logic handled by AuthForm */}
         <AuthForm
-          formType="changePassword"
+          formType="resetPasswordConfirm"
           title="Reset Password"
           subtitle="Create a new secure password for your account"
           onSuccess={handleResetPasswordSuccess}
+          initialValues={{ token }}
         />
       </FormContainer>
     </ScreenContainer>

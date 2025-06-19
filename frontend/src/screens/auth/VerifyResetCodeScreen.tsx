@@ -4,7 +4,7 @@ import { ScreenContainer, FormContainer, ScreenHeader, FormInput, Button, Naviga
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { useFormSubmission, useFormValidation, useResendCode } from '../../hooks';
+import { useFormSubmission, useFormValidation, useResendCode, useAPI, API_ENDPOINTS } from '../../hooks';
 
 /**
  * VerifyResetCodeScreen 
@@ -23,6 +23,7 @@ export default function VerifyResetCodeScreen({ navigation, route }: VerifyReset
 
   // State and hooks
   const [verificationData, setVerificationData] = useState<any>(null);
+  const { request } = useAPI();
 
   // Form validation
   const { values, errors, isValid, setValue, validateAll, resetForm } = useFormValidation({
@@ -41,27 +42,48 @@ export default function VerifyResetCodeScreen({ navigation, route }: VerifyReset
         throw new Error('Please enter a valid 6-digit verification code');
       }
 
-      const response = await fetch('/api/v1/auth/verify-reset-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          verification_code: values.verificationCode
-        })
-      });
+      try {
+        const result = await request({
+          endpoint: API_ENDPOINTS.AUTH.VERIFY_RESET_CODE,
+          method: 'POST',
+          data: {
+            email,
+            verification_code: values.verificationCode
+          },
+          showErrorAlert: false
+        });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'Invalid verification code');
+        console.log('Raw verification result:', JSON.stringify(result, null, 2));
+
+        if (!result || !result.success) {
+          throw new Error(result?.error || 'Invalid verification code');
+        }
+
+        // Extract token from the result data
+        const resultData = result.data || {};
+        const token = resultData.token || resultData.reset_token || 'temp-token';
+
+        console.log('Extracted token:', token);
+        console.log('Email for navigation:', email);
+
+        setVerificationData(resultData);
+
+        // Navigate with proper error handling
+        if (token && email) {
+          navigation.navigate('ResetPassword', {
+            token,
+            email
+          });
+        } else {
+          throw new Error('Missing token or email for navigation');
+        }
+      } catch (navError) {
+        console.error('Navigation error:', navError);
+        throw navError;
       }
-
-      setVerificationData(data);
     },
     onSuccess: () => {
-      navigation.navigate('ResetPassword', {
-        token: verificationData?.token || 'temp-token',
-        email
-      });
+      // Navigation is handled in onSubmit to ensure we have the data
     },
     successMessage: 'Code verified successfully!',
     showSuccessAlert: false

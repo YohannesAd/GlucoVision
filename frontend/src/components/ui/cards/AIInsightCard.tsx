@@ -112,7 +112,7 @@ export default function AIInsightCard({
       {/* Action Button */}
       {insight.actionable && showActionButton && onAction && (
         <Button
-          title="Apply Recommendation"
+          title="⏰ Set Reminder"
           onPress={() => onAction(insight)}
           variant="outline"
           size="medium"
