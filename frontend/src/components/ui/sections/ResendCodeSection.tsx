@@ -15,13 +15,19 @@ interface ResendCodeSectionProps {
   className?: string;
 }
 
-export default function ResendCodeSection({
+function ResendCodeSection({
   canResend,
   resendTimer,
   onResend,
   isLoading = false,
   className = ''
 }: ResendCodeSectionProps) {
+  // Safety checks
+  if (typeof canResend !== 'boolean' || typeof resendTimer !== 'number' || typeof onResend !== 'function') {
+    console.warn('ResendCodeSection: Invalid props provided');
+    return null;
+  }
+
   return (
     <View className={`items-center mb-6 ${className}`}>
       {canResend ? (
@@ -34,9 +40,14 @@ export default function ResendCodeSection({
         />
       ) : (
         <Text className="text-textSecondary text-sm">
-          Resend code in {resendTimer} seconds
+          Resend code in {Math.max(0, resendTimer)} seconds
         </Text>
       )}
     </View>
   );
 }
+
+// Add displayName for debugging
+ResendCodeSection.displayName = 'ResendCodeSection';
+
+export default ResendCodeSection;

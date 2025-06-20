@@ -27,14 +27,24 @@ export function useResendCode({
   const [resendTimer, setResendTimer] = useState(initialTimer);
   const { request } = useAPI();
 
-  // Timer effect
+  // Timer effect with proper cleanup
   useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+
     if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
     } else {
       setCanResend(true);
     }
+
+    // Cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [resendTimer]);
 
   // Handle resend code

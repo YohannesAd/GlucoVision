@@ -18,7 +18,7 @@ interface ScreenContainerProps {
   statusBarBackgroundColor?: string;
 }
 
-export default function ScreenContainer({
+function ScreenContainer({
   children,
   backgroundColor = 'bg-white',
   statusBarStyle = 'dark-content',
@@ -40,3 +40,8 @@ export default function ScreenContainer({
     </SafeAreaView>
   );
 }
+
+// Add displayName for debugging
+ScreenContainer.displayName = 'ScreenContainer';
+
+export default ScreenContainer;

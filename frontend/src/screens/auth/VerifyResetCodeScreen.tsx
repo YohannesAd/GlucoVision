@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Alert } from 'react-native';
 import { ScreenContainer, FormContainer, ScreenHeader, FormInput, Button, NavigationLink, FormError, ResendCodeSection } from '../../components/ui';
 import { RootStackParamList } from '../../types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,11 +19,28 @@ interface VerifyResetCodeScreenProps {
 }
 
 export default function VerifyResetCodeScreen({ navigation, route }: VerifyResetCodeScreenProps) {
-  const { email } = route.params;
+  // Safety check for route params
+  const email = route?.params?.email;
+
+  // If no email, navigate back
+  useEffect(() => {
+    if (!email) {
+      Alert.alert(
+        'Error',
+        'Missing email information. Please try again.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    }
+  }, [email, navigation]);
 
   // State and hooks
   const [verificationData, setVerificationData] = useState<any>(null);
   const { request } = useAPI();
+
+  // Early return if no email
+  if (!email) {
+    return null;
+  }
 
   // Form validation
   const { values, errors, isValid, setValue, validateAll, resetForm } = useFormValidation({
