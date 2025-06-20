@@ -94,7 +94,7 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = Field(default="gpt-4", env="OPENAI_MODEL")
     OPENAI_MAX_TOKENS: int = Field(default=1000, env="OPENAI_MAX_TOKENS")
     OPENAI_TEMPERATURE: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
-    ENABLE_OPENAI_CHAT: bool = Field(default=True, env="ENABLE_OPENAI_CHAT")
+    ENABLE_OPENAI_CHAT: bool = Field(default=False, env="ENABLE_OPENAI_CHAT")
     
     # Email Settings (for notifications)
     SMTP_HOST: Optional[str] = Field(default=None, env="SMTP_HOST")
