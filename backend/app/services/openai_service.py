@@ -305,5 +305,13 @@ RESPONSE STYLE:
         }
 
 
-# Create singleton instance
-openai_service = OpenAIService()
+# Create singleton instance conditionally
+try:
+    from app.core.config import settings
+    if settings.ENABLE_OPENAI_CHAT and settings.OPENAI_API_KEY:
+        openai_service = OpenAIService()
+    else:
+        openai_service = None
+except Exception as e:
+    logger.warning(f"OpenAI service initialization failed: {e}")
+    openai_service = None

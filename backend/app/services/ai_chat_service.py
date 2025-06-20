@@ -85,13 +85,28 @@ class AIChatService:
                     "created_at": msg.created_at.isoformat()
                 })
 
-            # Use OpenAI service for intelligent response
-            response_data = await openai_service.generate_response(
-                user_message=user_message,
-                user=user,
-                glucose_context=glucose_context,
-                conversation_history=conversation_history
-            )
+            # Use OpenAI service for intelligent response if available
+            if openai_service:
+                response_data = await openai_service.generate_response(
+                    user_message=user_message,
+                    user=user,
+                    glucose_context=glucose_context,
+                    conversation_history=conversation_history
+                )
+            else:
+                # Fallback response when OpenAI is not available
+                response_data = {
+                    "response": (
+                        "I'm here to help with diabetes management questions. "
+                        "Could you tell me more about what you'd like to know? "
+                        f"{self.medical_disclaimer}"
+                    ),
+                    "confidence": 0.6,
+                    "medical_topics": [],
+                    "recommendations": ["Monitor regularly", "Consult healthcare provider"],
+                    "user_intent": "general",
+                    "category": "fallback"
+                }
 
             return response_data
 
