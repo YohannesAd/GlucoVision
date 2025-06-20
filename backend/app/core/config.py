@@ -121,6 +121,10 @@ class Settings(BaseSettings):
     def parse_cors_origins(cls, v):
         """Parse CORS origins from string or list"""
         if isinstance(v, str):
+            # Handle special case for "*" (allow all)
+            if v.strip() == "*":
+                return ["*"]
+            # Handle comma-separated values
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v or []
 
@@ -128,6 +132,10 @@ class Settings(BaseSettings):
     def parse_allowed_hosts(cls, v):
         """Parse allowed hosts from string or list"""
         if isinstance(v, str):
+            # Handle special case for "*" (allow all)
+            if v.strip() == "*":
+                return ["*"]
+            # Handle comma-separated values
             return [host.strip() for host in v.split(",") if host.strip()]
         return v or []
     
