@@ -151,20 +151,9 @@ async def root():
 @app.get("/health", tags=["Health"])
 async def health_check():
     """
-    Detailed Health Check
-    
-    Provides comprehensive health status including:
-    - Database connectivity
-    - AI model status
-    - System resources
+    Simple Health Check for Railway
     """
-    return {
-        "status": "healthy",
-        "database": "connected",
-        "ai_models": "loaded",
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT
-    }
+    return {"status": "ok"}
 
 
 # API Routes
