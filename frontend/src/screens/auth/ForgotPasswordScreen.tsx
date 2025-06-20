@@ -14,7 +14,7 @@ interface ForgotPasswordScreenProps {
   navigation: ForgotPasswordScreenNavigationProp;
 }
 
-export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) {
+function ForgotPasswordScreen({ navigation }: ForgotPasswordScreenProps) {
   // Handle successful password reset request
   const handleForgotPasswordSuccess = (data: any) => {
     // Navigate to verification screen with email
@@ -42,3 +42,8 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+ForgotPasswordScreen.displayName = 'ForgotPasswordScreen';
+
+export default ForgotPasswordScreen;

@@ -18,7 +18,7 @@ interface VerifyResetCodeScreenProps {
   route: VerifyResetCodeScreenRouteProp;
 }
 
-export default function VerifyResetCodeScreen({ navigation, route }: VerifyResetCodeScreenProps) {
+function VerifyResetCodeScreen({ navigation, route }: VerifyResetCodeScreenProps) {
   // Safety check for route params
   const email = route?.params?.email;
 
@@ -176,3 +176,8 @@ export default function VerifyResetCodeScreen({ navigation, route }: VerifyReset
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+VerifyResetCodeScreen.displayName = 'VerifyResetCodeScreen';
+
+export default VerifyResetCodeScreen;

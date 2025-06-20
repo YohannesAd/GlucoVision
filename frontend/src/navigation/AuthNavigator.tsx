@@ -12,7 +12,7 @@ import ResetPasswordSuccessScreen from '../screens/auth/ResetPasswordSuccessScre
 
 const AuthStack = createNativeStackNavigator<RootStackParamList>();
 
-export default function AuthNavigator() {
+function AuthNavigator() {
   return (
     <AuthStack.Navigator
       initialRouteName="Landing"
@@ -56,3 +56,8 @@ export default function AuthNavigator() {
     </AuthStack.Navigator>
   );
 }
+
+// Add displayName for debugging
+AuthNavigator.displayName = 'AuthNavigator';
+
+export default AuthNavigator;

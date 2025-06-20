@@ -23,7 +23,7 @@ interface ResetPasswordScreenProps {
   route: ResetPasswordScreenRouteProp;
 }
 
-export default function ResetPasswordScreen({ navigation, route }: ResetPasswordScreenProps) {
+function ResetPasswordScreen({ navigation, route }: ResetPasswordScreenProps) {
   console.log('ResetPasswordScreen - route.params:', route.params);
 
   const params = route.params || {};
@@ -59,3 +59,8 @@ export default function ResetPasswordScreen({ navigation, route }: ResetPassword
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+ResetPasswordScreen.displayName = 'ResetPasswordScreen';
+
+export default ResetPasswordScreen;

@@ -17,7 +17,7 @@ interface ResetPasswordSuccessScreenProps {
   route: ResetPasswordSuccessScreenRouteProp;
 }
 
-export default function ResetPasswordSuccessScreen({ navigation, route }: ResetPasswordSuccessScreenProps) {
+function ResetPasswordSuccessScreen({ navigation, route }: ResetPasswordSuccessScreenProps) {
   console.log('ResetPasswordSuccessScreen - Mounted');
   console.log('ResetPasswordSuccessScreen - route.params:', route.params);
 
@@ -62,17 +62,15 @@ export default function ResetPasswordSuccessScreen({ navigation, route }: ResetP
     }
   };
 
-  // Render with error boundary
-  try {
-    return (
-      <ScreenContainer>
-        <FormContainer>
+  return (
+    <ScreenContainer>
+      <FormContainer>
         {/* Success Icon and Header */}
         <View className="items-center mb-8">
           <View className="w-20 h-20 bg-success rounded-full items-center justify-center mb-4">
             <Text className="text-3xl">✓</Text>
           </View>
-          
+
           <ScreenHeader
             title="Password Reset Complete!"
             subtitle="Your password has been successfully updated"
@@ -100,7 +98,7 @@ export default function ResetPasswordSuccessScreen({ navigation, route }: ResetP
             size="large"
             style={{ width: '100%', marginBottom: 16 }}
           />
-          
+
           <Text className="text-center text-textSecondary text-sm">
             You can now sign in to GlucoVision with your new password
           </Text>
@@ -115,24 +113,9 @@ export default function ResetPasswordSuccessScreen({ navigation, route }: ResetP
       </FormContainer>
     </ScreenContainer>
   );
-  } catch (error) {
-    console.error('ResetPasswordSuccessScreen - Render error:', error);
-    return (
-      <ScreenContainer>
-        <FormContainer>
-          <View className="items-center p-6">
-            <Text className="text-red-500 text-center mb-4">
-              Something went wrong. Please try again.
-            </Text>
-            <Button
-              title="Go to Login"
-              onPress={handleGoToLogin}
-              variant="primary"
-              size="medium"
-            />
-          </View>
-        </FormContainer>
-      </ScreenContainer>
-    );
-  }
 }
+
+// Add displayName for debugging
+ResetPasswordSuccessScreen.displayName = 'ResetPasswordSuccessScreen';
+
+export default ResetPasswordSuccessScreen;
