@@ -15,7 +15,7 @@ const getApiBaseUrl = (): string => {
     return 'http://10.0.0.226:8000'; // FastAPI development server
   }
 
-  return 'https://your-glucovision-api.railway.app'; // Production (Railway)
+  return 'https://glucovision-production.up.railway.app'; // Production (Railway)
 };
 
 export const API_CONFIG = {
