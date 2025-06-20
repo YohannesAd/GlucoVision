@@ -26,29 +26,32 @@ from contextlib import asynccontextmanager
 
 # Import core modules
 from app.core.config import settings
-# Temporarily disable database imports for debugging
-# from app.core.database import create_tables
-# from app.core.security import get_current_user
+from app.core.database import create_tables
+from app.core.security import get_current_user
 
-# Minimal imports for debugging
-# Temporarily disable all routers and models to isolate the issue
-# from app.api.v1.auth import router as auth_router
-# from app.api.v1.users import router as users_router
-# from app.api.v1.glucose import router as glucose_router
-# from app.api.v1.reports import router as reports_router
-# from app.models import user, glucose_log, password_reset, chat
+# Import API routers
+from app.api.v1.auth import router as auth_router
+from app.api.v1.users import router as users_router
+from app.api.v1.glucose import router as glucose_router
+from app.api.v1.reports import router as reports_router
+
+# Import database models to ensure they're registered
+from app.models import user, glucose_log, password_reset, chat
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Minimal lifespan manager for debugging
+    Application lifespan manager
+
+    Handles startup and shutdown events:
+    - Database table creation
+    - Resource cleanup
     """
     # Startup
-    print("🚀 Starting GlucoVision API (minimal mode)...")
-    # Temporarily disable database creation
-    # await create_tables()
-    print("✅ Minimal startup completed")
+    print("🚀 Starting GlucoVision API...")
+    await create_tables()
+    print("✅ Database tables created")
 
     yield
 
@@ -149,11 +152,30 @@ async def health_check():
     return {"status": "ok"}
 
 
-# Temporarily disable all API routes for debugging
-# app.include_router(auth_router, prefix="/api/v1/auth", tags=["🔐 Authentication"])
-# app.include_router(users_router, prefix="/api/v1/users", tags=["👤 User Management"])
-# app.include_router(glucose_router, prefix="/api/v1/glucose", tags=["📊 Glucose Management"])
-# app.include_router(reports_router, prefix="/api/v1/reports", tags=["📄 Medical Reports"])
+# API Routes
+app.include_router(
+    auth_router,
+    prefix="/api/v1/auth",
+    tags=["🔐 Authentication"]
+)
+
+app.include_router(
+    users_router,
+    prefix="/api/v1/users",
+    tags=["👤 User Management"]
+)
+
+app.include_router(
+    glucose_router,
+    prefix="/api/v1/glucose",
+    tags=["📊 Glucose Management"]
+)
+
+app.include_router(
+    reports_router,
+    prefix="/api/v1/reports",
+    tags=["📄 Medical Reports"]
+)
 
 
 # Global Exception Handler
