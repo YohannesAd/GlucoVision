@@ -41,21 +41,18 @@ interface UseAPIReturn {
 
 // Get the correct API URL for React Native
 const getAPIBaseURL = () => {
-  // If environment variable is set, use it
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
-
-  // Check if in development mode
-  const isDevelopment = __DEV__;
-
-  if (isDevelopment) {
-    // Use your computer's actual IP address for development
-    return 'http://10.0.0.226:8000';
-  }
-
-  // Use production Railway URL
+  // Temporarily force production URL for testing
   return 'https://glucovision-production.up.railway.app';
+
+  // Original logic (commented out for testing):
+  // if (process.env.EXPO_PUBLIC_API_URL) {
+  //   return process.env.EXPO_PUBLIC_API_URL;
+  // }
+  // const isDevelopment = __DEV__;
+  // if (isDevelopment) {
+  //   return 'http://10.0.0.226:8000';
+  // }
+  // return 'https://glucovision-production.up.railway.app';
 };
 
 const DEFAULT_CONFIG: APIConfig = {

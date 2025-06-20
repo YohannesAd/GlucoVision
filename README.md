@@ -60,11 +60,38 @@ This project is inspired by my father, who is diabetic, and combines cutting-edg
 
 ---
 
+## 🌐 Live Production Deployment
+
+### **🚀 Backend API (Railway)**
+
+- **Production URL**: `https://glucovision-production.up.railway.app`
+- **API Documentation**: `https://glucovision-production.up.railway.app/docs`
+- **Health Check**: `https://glucovision-production.up.railway.app/health`
+- **Status**: ✅ **ACTIVE** and stable
+
+### **📡 Available Endpoints**
+
+- 🔐 `/api/v1/auth` - Authentication & user management
+- 👤 `/api/v1/users` - User profiles and settings
+- 📊 `/api/v1/glucose` - Glucose data management
+- 🤖 `/api/v1/ai` - AI insights and chat functionality
+- 📄 `/api/v1/reports` - PDF report generation
+
+### **🔧 Production Configuration**
+
+- **Database**: SQLite (production-ready)
+- **AI Integration**: OpenAI GPT-3.5-turbo enabled
+- **Security**: JWT authentication with refresh tokens
+- **Monitoring**: Health checks and error logging
+- **CORS**: Configured for mobile app access
+
+---
+
 ## 🧠 AI-Powered Features
 
-### **OpenAI GPT-4 Integration**
+### **OpenAI GPT-3.5-turbo Integration**
 
-- **🤖 Intelligent Chat Assistant**: Real-time diabetes consultation with GPT-4 powered responses
+- **🤖 Intelligent Chat Assistant**: Real-time diabetes consultation with GPT-powered responses
 - **📊 Data-Driven Insights**: AI analyzes user glucose patterns to provide personalized recommendations
 - **🎯 Contextual Responses**: Chat system understands user's medical history and current readings
 - **💬 Persistent Conversations**: Chat history saved for continuous learning and context retention

@@ -6,16 +6,15 @@
 // Environment-based configuration
 const getApiBaseUrl = (): string => {
   // FastAPI backend URL
-  const isDevelopment = __DEV__;
-
-  if (isDevelopment) {
-    // For mobile devices and emulators, use your computer's IP address
-    // Make sure backend is running with --host 0.0.0.0 --port 8000
-    // Replace with your computer's actual IP address
-    return 'http://10.0.0.226:8000'; // FastAPI development server
-  }
-
+  // Temporarily force production URL for testing
   return 'https://glucovision-production.up.railway.app'; // Production (Railway)
+
+  // Original logic (commented out for testing):
+  // const isDevelopment = __DEV__;
+  // if (isDevelopment) {
+  //   return 'http://10.0.0.226:8000'; // FastAPI development server
+  // }
+  // return 'https://glucovision-production.up.railway.app'; // Production (Railway)
 };
 
 export const API_CONFIG = {
