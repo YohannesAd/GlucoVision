@@ -96,12 +96,22 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         throw new Error('Reading time cannot be in the future');
       }
 
+      console.log('🕐 Glucose Log Timestamp Info:', {
+        inputDate: values.date,
+        inputTime: values.time,
+        combinedLocal: combinedDateTime.toString(),
+        combinedISO: combinedDateTime.toISOString(),
+        currentTime: now.toString(),
+        currentISO: now.toISOString(),
+        timezoneOffset: combinedDateTime.getTimezoneOffset()
+      });
+
       const logData = {
         value: parseInt(values.value),
         unit: glucoseUnit,
         logType: values.logType,
         notes: values.notes?.trim() || undefined,
-        timestamp: combinedDateTime.toISOString(),
+        timestamp: combinedDateTime.toISOString(), // This includes timezone info
         userId: auth?.state?.user?.id || ''
       };
 

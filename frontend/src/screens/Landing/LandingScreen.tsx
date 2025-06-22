@@ -92,3 +92,8 @@ export default function LandingScreen({ navigation }: LandingScreenProps) {
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+LandingScreen.displayName = 'LandingScreen';
+
+export default LandingScreen;

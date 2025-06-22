@@ -11,6 +11,8 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
+    console.log('🏗️ Creating ApiClient with baseURL:', API_CONFIG.BASE_URL);
+
     this.client = axios.create({
       baseURL: API_CONFIG.BASE_URL,
       timeout: API_CONFIG.TIMEOUT,
@@ -92,6 +94,11 @@ class ApiClient {
   }
 
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    console.log('📤 ApiClient POST request:', {
+      url,
+      baseURL: this.client.defaults.baseURL,
+      fullURL: `${this.client.defaults.baseURL}${url}`
+    });
     return await this.client.post<T>(url, data, config);
   }
 

@@ -56,6 +56,9 @@ export default function RootNavigator() {
   );
 }
 
+// Add displayName for debugging
+RootNavigator.displayName = 'RootNavigator';
+
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,

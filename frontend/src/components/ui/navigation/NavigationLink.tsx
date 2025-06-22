@@ -43,3 +43,6 @@ export default function NavigationLink({
     </View>
   );
 }
+
+// Add displayName for debugging
+NavigationLink.displayName = 'NavigationLink';

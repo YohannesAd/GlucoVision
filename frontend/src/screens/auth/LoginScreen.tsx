@@ -64,3 +64,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+LoginScreen.displayName = 'LoginScreen';
+
+export default LoginScreen;

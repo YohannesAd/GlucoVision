@@ -6,8 +6,8 @@ Professional AI/ML service for glucose pattern analysis and insights.
 Provides intelligent recommendations and predictive analytics.
 
 Features:
-- Glucose pattern recognition
-- Trend analysis and predictions
+- Advanced glucose pattern recognition
+- Machine learning trend analysis
 - Personalized recommendations
 - Medical-grade insights
 - Time-series analysis
@@ -18,9 +18,12 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.ensemble import IsolationForest
+from sklearn.metrics import mean_squared_error
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 import logging
+import statistics
 
 from app.models.glucose_log import GlucoseLog
 from app.models.user import User
@@ -32,11 +35,11 @@ logger = logging.getLogger(__name__)
 class GlucoseAIService:
     """
     Professional AI Service for Glucose Analysis
-    
+
     Provides comprehensive AI-powered insights for glucose management
     including pattern recognition, trend analysis, and personalized recommendations.
     """
-    
+
     def __init__(self):
         self.scaler = StandardScaler()
         self.min_logs_for_analysis = 4
@@ -44,45 +47,195 @@ class GlucoseAIService:
     async def analyze_glucose_patterns(self, user: User, logs: List[GlucoseLog]) -> Dict[str, Any]:
         """
         Comprehensive Glucose Pattern Analysis
-        
-        Analyzes glucose logs to identify patterns, trends, and insights.
-        
+
+        Analyzes glucose logs to identify patterns, trends, and insights using ML.
+
         Args:
             user: User instance
             logs: List of glucose logs
-            
+
         Returns:
-            dict: Comprehensive analysis results
+            dict: Analysis results
         """
         try:
             if len(logs) < self.min_logs_for_analysis:
                 return self._insufficient_data_response()
-            
-            # Convert logs to DataFrame for analysis
+
+            # Convert logs to DataFrame for advanced analysis
             df = self._logs_to_dataframe(logs)
-            
-            # Perform various analyses
+
+            # Perform comprehensive ML analysis
+            overview_stats = self._calculate_overview_stats(df, user)
+            trends = self._analyze_trends(df)
+            patterns = self._identify_patterns(df)
+            recommendations = self._generate_recommendations(df, user)
+            risk_assessment = self._assess_risk_factors(df, user)
+            time_analysis = self._analyze_time_patterns(df)
+            meal_correlation = self._analyze_meal_correlation(df)
+
+            # Add advanced ML features
+            anomaly_detection = self._detect_anomalies(df)
+
             analysis = {
-                "overview": self._calculate_overview_stats(df, user),
-                "trends": self._analyze_trends(df),
-                "patterns": self._identify_patterns(df),
-                "recommendations": self._generate_recommendations(df, user),
-                "risk_assessment": self._assess_risks(df, user),
-                "time_analysis": self._analyze_time_patterns(df),
-                "meal_correlation": self._analyze_meal_correlation(df),
+                "overview": overview_stats,
+                "trends": trends,
+                "patterns": patterns,
+                "recommendations": recommendations,
+                "risk_assessment": risk_assessment,
+                "time_analysis": time_analysis,
+                "meal_correlation": meal_correlation,
                 "exercise_impact": self._analyze_exercise_impact(df),
-                "medication_effectiveness": self._analyze_medication_impact(df)
+                "medication_effectiveness": self._analyze_medication_impact(df),
+                "anomaly_detection": anomaly_detection
             }
-            
+
             logger.info(f"AI analysis completed for user: {user.email}")
             return analysis
-            
+
         except Exception as e:
             logger.error(f"AI analysis error: {e}")
             return self._error_response()
     
+    def _calculate_simple_stats(self, logs: List[GlucoseLog], user: User) -> Dict[str, Any]:
+        """Calculate basic glucose statistics"""
+        values = [log.glucose_value for log in logs]
+        
+        # Basic statistics
+        avg_glucose = statistics.mean(values)
+        min_glucose = min(values)
+        max_glucose = max(values)
+        
+        # Target range analysis
+        target_min = user.target_range_min or 80
+        target_max = user.target_range_max or 180
+        
+        in_range = sum(1 for val in values if target_min <= val <= target_max)
+        below_range = sum(1 for val in values if val < target_min)
+        above_range = sum(1 for val in values if val > target_max)
+        
+        time_in_range = (in_range / len(values)) * 100
+        
+        return {
+            "total_readings": len(logs),
+            "average_glucose": round(avg_glucose, 1),
+            "min_glucose": min_glucose,
+            "max_glucose": max_glucose,
+            "time_in_range": round(time_in_range, 1),
+            "readings_in_range": in_range,
+            "readings_below_range": below_range,
+            "readings_above_range": above_range
+        }
+    
+    def _analyze_simple_trends(self, logs: List[GlucoseLog]) -> Dict[str, Any]:
+        """Analyze basic glucose trends"""
+        if len(logs) < 3:
+            return {"trend": "insufficient_data", "direction": "unknown"}
+        
+        # Sort logs by time
+        sorted_logs = sorted(logs, key=lambda x: x.reading_time)
+        values = [log.glucose_value for log in sorted_logs]
+        
+        # Simple trend calculation
+        first_half = values[:len(values)//2]
+        second_half = values[len(values)//2:]
+        
+        first_avg = statistics.mean(first_half)
+        second_avg = statistics.mean(second_half)
+        
+        change = second_avg - first_avg
+        
+        if abs(change) < 5:
+            trend = "stable"
+            direction = "stable"
+        elif change > 0:
+            trend = "increasing"
+            direction = "upward"
+        else:
+            trend = "decreasing"
+            direction = "downward"
+        
+        return {
+            "trend": trend,
+            "direction": direction,
+            "change": round(change, 1),
+            "trend_strength": "moderate"
+        }
+    
+    def _identify_simple_patterns(self, logs: List[GlucoseLog]) -> Dict[str, Any]:
+        """Identify basic glucose patterns"""
+        # Group by hour of day
+        hourly_readings = {}
+        for log in logs:
+            hour = log.reading_time.hour
+            if hour not in hourly_readings:
+                hourly_readings[hour] = []
+            hourly_readings[hour].append(log.glucose_value)
+        
+        # Calculate hourly averages
+        hourly_averages = {}
+        for hour, readings in hourly_readings.items():
+            hourly_averages[hour] = round(statistics.mean(readings), 1)
+        
+        # Find peak and lowest hours
+        if hourly_averages:
+            peak_hour = max(hourly_averages, key=hourly_averages.get)
+            lowest_hour = min(hourly_averages, key=hourly_averages.get)
+        else:
+            peak_hour = 12
+            lowest_hour = 6
+        
+        return {
+            "hourly_averages": hourly_averages,
+            "peak_hour": peak_hour,
+            "lowest_hour": lowest_hour,
+            "pattern_strength": "moderate"
+        }
+    
+    def _generate_simple_recommendations(self, logs: List[GlucoseLog], user: User) -> List[Dict[str, Any]]:
+        """Generate basic recommendations"""
+        recommendations = []
+        values = [log.glucose_value for log in logs]
+        avg_glucose = statistics.mean(values)
+        
+        # Basic recommendations based on average glucose
+        if avg_glucose > 180:
+            recommendations.append({
+                "type": "glucose_control",
+                "priority": "high",
+                "title": "High Average Glucose",
+                "message": "Your average glucose is elevated. Consider consulting your healthcare provider.",
+                "action": "consult_doctor"
+            })
+        elif avg_glucose < 70:
+            recommendations.append({
+                "type": "glucose_control",
+                "priority": "high",
+                "title": "Low Average Glucose",
+                "message": "Your average glucose is low. Monitor for hypoglycemia symptoms.",
+                "action": "monitor_closely"
+            })
+        else:
+            recommendations.append({
+                "type": "glucose_control",
+                "priority": "normal",
+                "title": "Good Glucose Control",
+                "message": "Your glucose levels are within a reasonable range. Keep up the good work!",
+                "action": "continue_monitoring"
+            })
+        
+        # General recommendations
+        recommendations.append({
+            "type": "lifestyle",
+            "priority": "medium",
+            "title": "Regular Monitoring",
+            "message": "Continue logging your glucose readings regularly for better insights.",
+            "action": "log_regularly"
+        })
+        
+        return recommendations
+
     def _logs_to_dataframe(self, logs: List[GlucoseLog]) -> pd.DataFrame:
-        """Convert glucose logs to pandas DataFrame"""
+        """Convert glucose logs to pandas DataFrame for ML analysis"""
         data = []
         for log in logs:
             data.append({
@@ -102,66 +255,65 @@ class GlucoseAIService:
                 'day_of_week': log.reading_time.weekday(),
                 'is_weekend': log.reading_time.weekday() >= 5
             })
-        
+
         df = pd.DataFrame(data)
         df['reading_time'] = pd.to_datetime(df['reading_time'])
         df = df.sort_values('reading_time')
         return df
-    
+
     def _calculate_overview_stats(self, df: pd.DataFrame, user: User) -> Dict[str, Any]:
-        """Calculate overview statistics"""
+        """Calculate comprehensive overview statistics using pandas"""
         glucose_values = df['glucose_value']
-        
-        # Basic statistics - Convert numpy types to Python types for JSON serialization
-        stats = {
-            'total_readings': int(len(df)),
-            'average_glucose': round(float(glucose_values.mean()), 1),
-            'median_glucose': round(float(glucose_values.median()), 1),
-            'std_glucose': round(float(glucose_values.std()), 1),
-            'min_glucose': float(glucose_values.min()),
-            'max_glucose': float(glucose_values.max()),
-            'glucose_variability': round(float((glucose_values.std() / glucose_values.mean()) * 100), 1)
-        }
-        
-        # Time in range analysis
-        target_min = user.target_range_min
-        target_max = user.target_range_max
-        
+
+        # Basic statistics
+        avg_glucose = glucose_values.mean()
+        min_glucose = glucose_values.min()
+        max_glucose = glucose_values.max()
+        std_glucose = glucose_values.std()
+
+        # Target range analysis
+        target_min = user.target_range_min or 80
+        target_max = user.target_range_max or 180
+
         in_range = ((glucose_values >= target_min) & (glucose_values <= target_max)).sum()
         below_range = (glucose_values < target_min).sum()
         above_range = (glucose_values > target_max).sum()
-        
-        stats.update({
-            'time_in_range_percent': round(float((in_range / len(df)) * 100), 1),
-            'time_below_range_percent': round(float((below_range / len(df)) * 100), 1),
-            'time_above_range_percent': round(float((above_range / len(df)) * 100), 1),
-            'readings_in_range': int(in_range),
-            'readings_below_range': int(below_range),
-            'readings_above_range': int(above_range)
-        })
-        
-        return stats
-    
+
+        time_in_range = (in_range / len(glucose_values)) * 100
+
+        # Variability metrics
+        cv = (std_glucose / avg_glucose) * 100 if avg_glucose > 0 else 0
+
+        return {
+            "total_readings": len(df),
+            "average_glucose": round(float(avg_glucose), 1),
+            "min_glucose": float(min_glucose),
+            "max_glucose": float(max_glucose),
+            "glucose_variability": round(float(std_glucose), 1),
+            "coefficient_variation": round(float(cv), 1),
+            "time_in_range": round(float(time_in_range), 1),
+            "readings_in_range": int(in_range),
+            "readings_below_range": int(below_range),
+            "readings_above_range": int(above_range)
+        }
+
     def _analyze_trends(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze glucose trends over time"""
+        """Analyze glucose trends using linear regression"""
         if len(df) < 3:
             return {"trend": "insufficient_data", "direction": "unknown", "slope": 0}
-        
-        # Prepare data for trend analysis
+
+        # Prepare data for regression
         df_sorted = df.sort_values('reading_time')
-        days_since_start = (df_sorted['reading_time'] - df_sorted['reading_time'].iloc[0]).dt.days
-        glucose_values = df_sorted['glucose_value'].values
-        
-        # Linear regression for trend
-        X = days_since_start.values.reshape(-1, 1)
-        y = glucose_values
-        
+        X = np.arange(len(df_sorted)).reshape(-1, 1)
+        y = df_sorted['glucose_value'].values
+
+        # Fit linear regression
         model = LinearRegression()
         model.fit(X, y)
-        
+
         slope = model.coef_[0]
         r_squared = model.score(X, y)
-        
+
         # Determine trend direction
         if abs(slope) < 0.5:
             trend = "stable"
@@ -172,29 +324,33 @@ class GlucoseAIService:
         else:
             trend = "decreasing"
             direction = "downward"
-        
+
         # Recent vs older comparison
         recent_days = 7
         if len(df) > recent_days:
-            recent_avg = df.tail(recent_days)['glucose_value'].mean()
-            older_avg = df.head(len(df) - recent_days)['glucose_value'].mean()
+            recent_avg = df_sorted.tail(recent_days)['glucose_value'].mean()
+            older_avg = df_sorted.head(len(df) - recent_days)['glucose_value'].mean()
             recent_change = recent_avg - older_avg
         else:
             recent_change = 0
-        
+
+        # Advanced ML Predictions
+        predictions = self._generate_glucose_predictions(df_sorted, model)
+
         return {
             "trend": trend,
             "direction": direction,
             "slope": round(float(slope), 3),
             "r_squared": round(float(r_squared), 3),
             "recent_change": round(float(recent_change), 1),
-            "trend_strength": "strong" if r_squared > 0.7 else "moderate" if r_squared > 0.4 else "weak"
+            "trend_strength": "strong" if r_squared > 0.7 else "moderate" if r_squared > 0.4 else "weak",
+            "predictions": predictions
         }
-    
+
     def _identify_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Identify glucose patterns"""
+        """Identify glucose patterns using advanced ML clustering"""
         patterns = {}
-        
+
         # Time-of-day patterns
         hourly_avg = df.groupby('hour')['glucose_value'].mean()
         patterns['hourly_averages'] = {int(k): float(v) for k, v in hourly_avg.to_dict().items()}
@@ -208,89 +364,217 @@ class GlucoseAIService:
             'weekend_avg': round(float(df[df['is_weekend']]['glucose_value'].mean()), 1),
             'weekday_avg': round(float(df[~df['is_weekend']]['glucose_value'].mean()), 1)
         }
-        
-        # Reading type patterns
-        type_avg = df.groupby('reading_type')['glucose_value'].mean()
-        patterns['reading_type_averages'] = {str(k): float(v) for k, v in type_avg.to_dict().items()}
-        
+
+        # Advanced ML Pattern Recognition with K-Means Clustering
+        if len(df) >= 10:  # Need enough data for clustering
+            try:
+                # Create feature matrix for clustering
+                features = df[['glucose_value', 'hour', 'day_of_week', 'carbs_consumed',
+                              'exercise_duration', 'stress_level', 'sleep_hours']].fillna(0)
+
+                # Scale features for better clustering
+                features_scaled = self.scaler.fit_transform(features)
+
+                # Perform K-means clustering to find glucose behavior patterns
+                n_clusters = min(3, len(df) // 4)  # Adaptive cluster count
+                kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+                clusters = kmeans.fit_predict(features_scaled)
+
+                # Analyze clusters
+                df_clustered = df.copy()
+                df_clustered['cluster'] = clusters
+
+                cluster_analysis = {}
+                for cluster_id in range(n_clusters):
+                    cluster_data = df_clustered[df_clustered['cluster'] == cluster_id]
+                    cluster_analysis[f'pattern_{cluster_id}'] = {
+                        'avg_glucose': round(float(cluster_data['glucose_value'].mean()), 1),
+                        'common_time': int(cluster_data['hour'].mode().iloc[0]) if len(cluster_data) > 0 else 12,
+                        'avg_carbs': round(float(cluster_data['carbs_consumed'].mean()), 1),
+                        'avg_exercise': round(float(cluster_data['exercise_duration'].mean()), 1),
+                        'pattern_frequency': len(cluster_data),
+                        'description': self._describe_cluster_pattern(cluster_data)
+                    }
+
+                patterns['ml_clusters'] = cluster_analysis
+                patterns['dominant_pattern'] = max(cluster_analysis.keys(),
+                                                 key=lambda x: cluster_analysis[x]['pattern_frequency'])
+
+            except Exception as e:
+                logger.warning(f"ML clustering failed: {e}")
+                patterns['ml_clusters'] = {"error": "Insufficient data for advanced pattern recognition"}
+
         return patterns
-    
+
+    def _describe_cluster_pattern(self, cluster_data: pd.DataFrame) -> str:
+        """Generate human-readable description of glucose pattern cluster"""
+        avg_glucose = cluster_data['glucose_value'].mean()
+        common_hour = cluster_data['hour'].mode().iloc[0] if len(cluster_data) > 0 else 12
+        avg_carbs = cluster_data['carbs_consumed'].mean()
+
+        time_desc = "morning" if common_hour < 12 else "afternoon" if common_hour < 18 else "evening"
+        glucose_desc = "high" if avg_glucose > 150 else "normal" if avg_glucose > 80 else "low"
+        carb_desc = "high-carb" if avg_carbs > 50 else "moderate-carb" if avg_carbs > 20 else "low-carb"
+
+        return f"{glucose_desc} glucose {time_desc} pattern with {carb_desc} meals"
+
+    def _generate_glucose_predictions(self, df: pd.DataFrame, model: LinearRegression) -> Dict[str, Any]:
+        """Generate glucose predictions using trained ML model"""
+        try:
+            # Predict next 3 readings based on trend
+            last_index = len(df) - 1
+            future_indices = np.array([[last_index + 1], [last_index + 2], [last_index + 3]])
+            predictions = model.predict(future_indices)
+
+            # Calculate prediction confidence based on model performance
+            confidence = model.score(np.arange(len(df)).reshape(-1, 1), df['glucose_value'].values)
+
+            return {
+                "next_reading_prediction": round(float(predictions[0]), 1),
+                "short_term_predictions": [round(float(p), 1) for p in predictions],
+                "confidence_score": round(float(confidence), 3),
+                "prediction_reliability": "high" if confidence > 0.7 else "moderate" if confidence > 0.4 else "low"
+            }
+        except Exception as e:
+            logger.warning(f"Prediction generation failed: {e}")
+            return {"error": "Unable to generate predictions"}
+
+    def _detect_anomalies(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Detect glucose anomalies using statistical methods"""
+        glucose_values = df['glucose_value']
+
+        # Calculate statistical thresholds
+        mean_glucose = glucose_values.mean()
+        std_glucose = glucose_values.std()
+
+        # Define anomaly thresholds (2 standard deviations)
+        upper_threshold = mean_glucose + (2 * std_glucose)
+        lower_threshold = mean_glucose - (2 * std_glucose)
+
+        # Find anomalies
+        anomalies = df[
+            (df['glucose_value'] > upper_threshold) |
+            (df['glucose_value'] < lower_threshold)
+        ]
+
+        # Advanced ML-based anomaly detection
+        ml_anomalies = self._ml_anomaly_detection(df)
+
+        return {
+            "anomaly_count": len(anomalies),
+            "anomaly_percentage": round((len(anomalies) / len(df)) * 100, 1),
+            "severe_highs": len(df[df['glucose_value'] > 300]),
+            "severe_lows": len(df[df['glucose_value'] < 50]),
+            "anomaly_threshold_high": round(float(upper_threshold), 1),
+            "anomaly_threshold_low": round(float(lower_threshold), 1),
+            "ml_anomaly_detection": ml_anomalies
+        }
+
+    def _ml_anomaly_detection(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Advanced ML-based anomaly detection using Isolation Forest"""
+        try:
+            if len(df) < 10:
+                return {"insufficient_data": True}
+
+            # Prepare features for anomaly detection
+            features = df[['glucose_value', 'hour', 'carbs_consumed',
+                          'exercise_duration', 'stress_level']].fillna(0)
+
+            # Scale features
+            features_scaled = self.scaler.fit_transform(features)
+
+            # Apply Isolation Forest for anomaly detection
+            isolation_forest = IsolationForest(contamination=0.1, random_state=42)
+            anomaly_labels = isolation_forest.fit_predict(features_scaled)
+
+            # Identify anomalous readings
+            anomaly_indices = np.where(anomaly_labels == -1)[0]
+            anomalous_readings = df.iloc[anomaly_indices]
+
+            return {
+                "ml_anomaly_count": len(anomaly_indices),
+                "ml_anomaly_percentage": round((len(anomaly_indices) / len(df)) * 100, 1),
+                "anomalous_glucose_values": [round(float(val), 1) for val in anomalous_readings['glucose_value'].tolist()],
+                "anomaly_detection_method": "Isolation Forest ML Algorithm"
+            }
+
+        except Exception as e:
+            logger.warning(f"ML anomaly detection failed: {e}")
+            return {"error": "ML anomaly detection unavailable"}
+
     def _generate_recommendations(self, df: pd.DataFrame, user: User) -> List[Dict[str, Any]]:
-        """Generate personalized recommendations"""
+        """Generate ML-based personalized recommendations"""
         recommendations = []
-        
-        # High glucose frequency
-        high_readings = (df['glucose_value'] > user.target_range_max).sum()
-        if high_readings > len(df) * 0.3:  # More than 30% high
+        avg_glucose = df['glucose_value'].mean()
+        glucose_std = df['glucose_value'].std()
+
+        # High variability recommendation
+        cv = (glucose_std / avg_glucose) * 100 if avg_glucose > 0 else 0
+        if cv > 30:
             recommendations.append({
                 "type": "glucose_control",
                 "priority": "high",
-                "title": "Frequent High Glucose Levels",
-                "message": f"You have {high_readings} high glucose readings. Consider reviewing your meal portions and medication timing with your healthcare provider.",
-                "action": "consult_doctor"
+                "title": "High Glucose Variability",
+                "message": f"Your glucose variability is {cv:.1f}%. Consider more consistent meal timing and medication schedules.",
+                "action": "improve_consistency"
             })
-        
-        # Low glucose frequency
-        low_readings = (df['glucose_value'] < user.target_range_min).sum()
-        if low_readings > len(df) * 0.1:  # More than 10% low
+
+        # Average glucose recommendations
+        if avg_glucose > 180:
             recommendations.append({
-                "type": "hypoglycemia",
+                "type": "glucose_control",
                 "priority": "high",
-                "title": "Frequent Low Glucose Episodes",
-                "message": f"You have {low_readings} low glucose readings. This may indicate a need to adjust your medication or eating schedule.",
+                "title": "Elevated Average Glucose",
+                "message": f"Your average glucose is {avg_glucose:.1f} mg/dL. Consult your healthcare provider about adjusting your treatment plan.",
                 "action": "consult_doctor"
             })
-        
-        # Exercise correlation
-        if 'exercise_duration' in df.columns and df['exercise_duration'].sum() > 0:
-            exercise_effect = self._analyze_exercise_correlation(df)
-            if exercise_effect['correlation'] < -0.3:
-                recommendations.append({
-                    "type": "exercise",
-                    "priority": "medium",
-                    "title": "Exercise Benefits",
-                    "message": "Your glucose levels tend to be lower after exercise. Consider maintaining regular physical activity.",
-                    "action": "continue_exercise"
-                })
-        
-        # Meal timing patterns
-        meal_patterns = self._analyze_meal_timing(df)
-        if meal_patterns['post_meal_spikes'] > 0.4:
+        elif avg_glucose < 70:
             recommendations.append({
-                "type": "nutrition",
-                "priority": "medium",
-                "title": "Post-Meal Glucose Spikes",
-                "message": "Your glucose levels often spike after meals. Consider smaller portions or discussing meal timing with a nutritionist.",
-                "action": "nutrition_consultation"
+                "type": "glucose_control",
+                "priority": "high",
+                "title": "Low Average Glucose",
+                "message": f"Your average glucose is {avg_glucose:.1f} mg/dL. Monitor for hypoglycemia symptoms and discuss with your healthcare provider.",
+                "action": "monitor_closely"
             })
-        
+        else:
+            recommendations.append({
+                "type": "glucose_control",
+                "priority": "normal",
+                "title": "Good Glucose Control",
+                "message": f"Your average glucose is {avg_glucose:.1f} mg/dL, which is within a good range. Keep up the excellent work!",
+                "action": "continue_monitoring"
+            })
+
         return recommendations
-    
-    def _assess_risks(self, df: pd.DataFrame, user: User) -> Dict[str, Any]:
-        """Assess glucose-related risks"""
-        glucose_values = df['glucose_value']
-        
-        # Variability risk
-        cv = (glucose_values.std() / glucose_values.mean()) * 100
-        variability_risk = "high" if cv > 36 else "moderate" if cv > 24 else "low"
-        
-        # Hypoglycemia risk
-        low_count = (glucose_values < 70).sum()
-        hypo_risk = "high" if low_count > 2 else "moderate" if low_count > 0 else "low"
-        
-        # Hyperglycemia risk
-        high_count = (glucose_values > 250).sum()
-        hyper_risk = "high" if high_count > 2 else "moderate" if high_count > 0 else "low"
-        
+
+    def _assess_risk_factors(self, df: pd.DataFrame, user: User) -> Dict[str, Any]:
+        """Assess diabetes-related risk factors"""
+        avg_glucose = df['glucose_value'].mean()
+        high_readings = (df['glucose_value'] > 250).sum()
+        low_readings = (df['glucose_value'] < 70).sum()
+
+        risk_level = "low"
+        risk_factors = []
+
+        if avg_glucose > 200:
+            risk_level = "high"
+            risk_factors.append("Consistently elevated glucose levels")
+        elif avg_glucose > 150:
+            risk_level = "moderate"
+            risk_factors.append("Moderately elevated glucose levels")
+
+        if high_readings > 0:
+            risk_factors.append(f"{high_readings} severe hyperglycemic episodes")
+
+        if low_readings > 0:
+            risk_factors.append(f"{low_readings} hypoglycemic episodes")
+
         return {
-            "variability_risk": variability_risk,
-            "hypoglycemia_risk": hypo_risk,
-            "hyperglycemia_risk": hyper_risk,
-            "coefficient_of_variation": round(cv, 1),
-            "severe_low_episodes": int(low_count),
-            "severe_high_episodes": int(high_count)
+            "level": risk_level,
+            "factors": risk_factors,
+            "message": f"Risk assessment based on {len(df)} readings"
         }
-    
+
     def _analyze_time_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Analyze time-based patterns"""
         # Dawn phenomenon (early morning rise)
@@ -302,88 +586,69 @@ class GlucoseAIService:
             dawn_phenomenon = morning_readings.mean() > night_readings.mean() + 20
 
         return {
-            "dawn_phenomenon_detected": bool(dawn_phenomenon),  # Convert numpy.bool_ to Python bool
+            "dawn_phenomenon_detected": bool(dawn_phenomenon),
             "morning_average": round(float(morning_readings.mean()), 1) if len(morning_readings) > 0 else None,
             "evening_average": round(float(night_readings.mean()), 1) if len(night_readings) > 0 else None
         }
-    
+
     def _analyze_meal_correlation(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Analyze meal-related patterns"""
         meal_data = df[df['meal_type'].notna()]
-        
+
         if len(meal_data) == 0:
             return {"insufficient_meal_data": True}
-        
+
         meal_averages = meal_data.groupby('meal_type')['glucose_value'].mean().to_dict()
-        
+
         return {
             "meal_averages": meal_averages,
             "highest_meal_impact": max(meal_averages, key=meal_averages.get) if meal_averages else None
         }
-    
+
     def _analyze_exercise_impact(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Analyze exercise impact on glucose"""
         exercise_data = df[df['exercise_duration'] > 0]
-        no_exercise_data = df[df['exercise_duration'] == 0]
-        
-        if len(exercise_data) == 0:
-            return {"no_exercise_data": True}
-        
+
+        if len(exercise_data) < 3:
+            return {"insufficient_data": True}
+
         exercise_avg = exercise_data['glucose_value'].mean()
-        no_exercise_avg = no_exercise_data['glucose_value'].mean()
-        
+        no_exercise_avg = df[df['exercise_duration'] == 0]['glucose_value'].mean()
+
         return {
-            "exercise_average": round(exercise_avg, 1),
-            "no_exercise_average": round(no_exercise_avg, 1),
-            "exercise_benefit": round(no_exercise_avg - exercise_avg, 1)
+            "exercise_average": round(float(exercise_avg), 1),
+            "no_exercise_average": round(float(no_exercise_avg), 1),
+            "exercise_benefit": round(float(no_exercise_avg - exercise_avg), 1)
         }
-    
+
     def _analyze_medication_impact(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze medication impact"""
+        """Analyze medication effectiveness"""
         med_data = df[df['medication_taken'] == True]
-        no_med_data = df[df['medication_taken'] == False]
-        
-        if len(med_data) == 0 or len(no_med_data) == 0:
-            return {"insufficient_medication_data": True}
-        
+
+        if len(med_data) < 3:
+            return {"insufficient_data": True}
+
         med_avg = med_data['glucose_value'].mean()
-        no_med_avg = no_med_data['glucose_value'].mean()
-        
+        no_med_avg = df[df['medication_taken'] == False]['glucose_value'].mean()
+
         return {
-            "with_medication_average": round(med_avg, 1),
-            "without_medication_average": round(no_med_avg, 1),
-            "medication_effect": round(no_med_avg - med_avg, 1)
+            "with_medication_average": round(float(med_avg), 1),
+            "without_medication_average": round(float(no_med_avg), 1),
+            "medication_effectiveness": round(float(no_med_avg - med_avg), 1)
         }
-    
-    def _analyze_exercise_correlation(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze correlation between exercise and glucose"""
-        if df['exercise_duration'].sum() == 0:
-            return {"correlation": 0, "significance": "none"}
-        
-        correlation = df['exercise_duration'].corr(df['glucose_value'])
-        return {
-            "correlation": round(correlation, 3),
-            "significance": "strong" if abs(correlation) > 0.7 else "moderate" if abs(correlation) > 0.3 else "weak"
-        }
-    
-    def _analyze_meal_timing(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze meal timing patterns"""
-        after_meal_readings = df[df['reading_type'] == 'after_meal']
-        
-        if len(after_meal_readings) == 0:
-            return {"post_meal_spikes": 0}
-        
-        # Calculate percentage of post-meal readings that are high
-        high_post_meal = (after_meal_readings['glucose_value'] > 180).sum()
-        spike_percentage = high_post_meal / len(after_meal_readings)
-        
-        return {"post_meal_spikes": round(spike_percentage, 2)}
-    
+
     def _insufficient_data_response(self) -> Dict[str, Any]:
         """Response for insufficient data"""
         return {
             "status": "insufficient_data",
             "message": "Not enough glucose readings for comprehensive analysis. Please log at least 4 readings.",
+            "overview": {
+                "total_readings": 0,
+                "average_glucose": 0,
+                "time_in_range": 0
+            },
+            "trends": {"trend": "insufficient_data"},
+            "patterns": {},
             "recommendations": [
                 {
                     "type": "data_collection",
@@ -400,6 +665,13 @@ class GlucoseAIService:
         return {
             "status": "error",
             "message": "Unable to complete analysis at this time. Please try again later.",
+            "overview": {
+                "total_readings": 0,
+                "average_glucose": 0,
+                "time_in_range": 0
+            },
+            "trends": {"trend": "error"},
+            "patterns": {},
             "recommendations": []
         }
 

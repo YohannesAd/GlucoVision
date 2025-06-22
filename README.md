@@ -20,6 +20,7 @@ This project is inspired by my father, who is diabetic, and combines cutting-edg
 | **Backend**        | FastAPI + Python 3.11+                 | High-performance, modern API framework with auto-documentation      |
 | **Database**       | PostgreSQL + SQLAlchemy                | Robust, scalable database with async support and Alembic migrations |
 | **Authentication** | JWT + bcrypt + FastAPI Security        | Secure, mobile-ready authentication system                          |
+| **Email Service**  | SMTP + Professional Templates          | Email verification, password reset, and user communications         |
 | **AI Integration** | OpenAI GPT-4 API                       | Advanced AI chat and recommendations for diabetes management        |
 | **API Docs**       | Auto-generated Swagger/OpenAPI         | Professional API documentation                                      |
 | **PDF Reports**    | ReportLab + Custom Templates           | Medical report generation with professional formatting              |
@@ -50,6 +51,13 @@ This project is inspired by my father, who is diabetic, and combines cutting-edg
 - **Professional PDF Export** - Medical-grade reports for healthcare provider consultations
 - **Custom Date Ranges** - Flexible reporting (daily, weekly, monthly, custom periods)
 - **Complete Data Export** - Download full dataset in multiple formats for external analysis
+
+### **📧 Professional Email System**
+
+- **Email Verification** - Secure account verification with professional email templates
+- **Password Reset** - Secure password recovery with verification codes via email
+- **Welcome Communications** - Professional onboarding emails with feature guidance
+- **Multi-Provider Support** - Compatible with Gmail, Outlook, SendGrid, Mailgun, and more
 
 ### **🏥 Medical Integration**
 
@@ -152,7 +160,22 @@ Landing → Authentication → 3-Step Onboarding → Dashboard
 
 ### **🚀 Quick Start (Recommended)**
 
-**Step 1: Start Backend**
+**Step 1: Configure Email (Optional)**
+
+```bash
+# Copy environment template
+cd backend
+cp .env.example .env
+
+# Edit .env file and configure email settings:
+# ENABLE_EMAIL=true
+# SMTP_HOST=smtp.gmail.com
+# SMTP_USERNAME=your-email@gmail.com
+# SMTP_PASSWORD=your-app-password
+# (See backend/docs/EMAIL_SETUP.md for detailed instructions)
+```
+
+**Step 2: Start Backend**
 
 ```bash
 # From project root directory
@@ -165,7 +188,7 @@ pip install -r requirements.txt
 python run.py --host 0.0.0.0 --port 8000
 ```
 
-**Step 2: Update Frontend IP Configuration**
+**Step 3: Update Frontend IP Configuration**
 
 ```bash
 # Find your computer's IP address
@@ -176,7 +199,7 @@ ifconfig | grep "inet"  # macOS/Linux
 # Replace 'localhost' with your computer's IP address (e.g., 192.168.1.100)
 ```
 
-**Step 3: Start Frontend**
+**Step 4: Start Frontend**
 
 ```bash
 # From project root directory

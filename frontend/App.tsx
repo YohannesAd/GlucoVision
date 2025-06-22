@@ -23,3 +23,6 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+// Add displayName for debugging
+App.displayName = 'App';

@@ -35,3 +35,6 @@ export default function OnboardingNavigator() {
     </OnboardingStack.Navigator>
   );
 }
+
+// Add displayName for debugging
+OnboardingNavigator.displayName = 'OnboardingNavigator';

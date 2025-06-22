@@ -38,3 +38,6 @@ export default function ScreenHeader({
     </View>
   );
 }
+
+// Add displayName for debugging
+ScreenHeader.displayName = 'ScreenHeader';

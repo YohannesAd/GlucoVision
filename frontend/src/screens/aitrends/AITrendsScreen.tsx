@@ -4,10 +4,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import {
   ScreenContainer, DataSection, StatsCard, PeriodSelector,
-  GlucoseChart, AIInsightCard, Button
+  GlucoseChart, AIInsightCard, MLInsightsCard, Button
 } from '../../components/ui';
 import { useAppState, useDataFetching, useAPI, API_ENDPOINTS } from '../../hooks';
 import { useRecommendationActions } from '../../utils/RecommendationActions';
+import { aiService } from '../../services/ai/aiService';
 
 /**
  * AITrendsScreen - Real-time AI glucose analysis
@@ -25,6 +26,8 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
   const { request } = useAPI();
   const recommendationActions = useRecommendationActions(navigation);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('week');
+  const [mlData, setMLData] = useState<any>(null);
+  const [advancedAnalytics, setAdvancedAnalytics] = useState<any>(null);
 
   // Removed isReady check to prevent infinite loops
 
@@ -63,13 +66,22 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
         })
       ]);
 
+      // Fetch advanced ML data
+      const [mlPatterns, analytics] = await Promise.all([
+        aiService.getMLPatterns(auth.state.token!, days),
+        aiService.getAdvancedAnalytics(auth.state.token!, days)
+      ]);
+
       // Minimal debug logging
       console.log('AI data fetched successfully. Logs:', glucose.state.logs?.length || 0);
+      console.log('ML patterns:', mlPatterns.clusters.length, 'clusters found');
 
       return {
         insights: insightsResult.data,
         recommendations: recommendationsResult.data,
-        logs: glucose.state.logs || []
+        logs: glucose.state.logs || [],
+        mlPatterns,
+        analytics
       };
     },
     dependencies: [selectedPeriod, auth?.state?.token], // Simplified dependencies
@@ -263,6 +275,24 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
             />
           ))}
         </DataSection>
+
+        {/* Advanced ML Insights */}
+        {aiData?.mlPatterns && aiData?.analytics && (
+          <DataSection
+            title="🧠 Advanced ML Analysis"
+            subtitle="Machine learning insights from your glucose data"
+            isLoading={isLoading}
+            error={error}
+            isEmpty={false}
+            className="mx-4 mt-4"
+          >
+            <MLInsightsCard
+              mlData={aiData.mlPatterns}
+              advancedAnalytics={aiData.analytics}
+              className="mb-4"
+            />
+          </DataSection>
+        )}
 
       </ScrollView>
     </ScreenContainer>

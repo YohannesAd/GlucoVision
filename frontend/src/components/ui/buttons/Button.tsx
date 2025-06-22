@@ -89,3 +89,6 @@ export default function Button({
     </TouchableOpacity>
   );
 }
+
+// Add displayName for debugging
+Button.displayName = 'Button';

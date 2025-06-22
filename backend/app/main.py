@@ -38,7 +38,7 @@ from app.api.v1.ai_chat import router as ai_chat_router
 from app.api.v1.reports import router as reports_router
 
 # Import database models to ensure they're registered
-from app.models import user, glucose_log, password_reset, chat
+from app.models import user, glucose_log, password_reset, chat, email_verification
 
 
 @asynccontextmanager

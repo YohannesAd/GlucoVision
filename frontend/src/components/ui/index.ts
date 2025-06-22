@@ -43,6 +43,7 @@ export { default as ValuePicker } from './forms/ValuePicker';
 // 📋 CARD COMPONENTS
 export { default as StatsCard } from './cards/StatsCard';
 export { default as AIInsightCard } from './cards/AIInsightCard';
+export { default as MLInsightsCard } from './cards/MLInsightsCard';
 export { default as GlucoseLogCard } from './cards/GlucoseLogCard';
 
 // 📝 LIST COMPONENTS

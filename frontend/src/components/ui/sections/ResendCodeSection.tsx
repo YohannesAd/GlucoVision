@@ -22,25 +22,49 @@ function ResendCodeSection({
   isLoading = false,
   className = ''
 }: ResendCodeSectionProps) {
-  // Safety checks
-  if (typeof canResend !== 'boolean' || typeof resendTimer !== 'number' || typeof onResend !== 'function') {
-    console.warn('ResendCodeSection: Invalid props provided');
+  // Enhanced safety checks with error boundaries
+  if (typeof canResend !== 'boolean') {
+    console.warn('ResendCodeSection: canResend must be boolean, received:', typeof canResend);
     return null;
   }
+
+  if (typeof resendTimer !== 'number' || isNaN(resendTimer)) {
+    console.warn('ResendCodeSection: resendTimer must be a valid number, received:', resendTimer);
+    return null;
+  }
+
+  if (typeof onResend !== 'function') {
+    console.warn('ResendCodeSection: onResend must be a function, received:', typeof onResend);
+    return null;
+  }
+
+  // Safe timer calculation
+  const safeTimer = Math.max(0, Math.floor(resendTimer));
+
+  // Safe onPress handler
+  const handleResend = () => {
+    try {
+      if (typeof onResend === 'function') {
+        onResend();
+      }
+    } catch (error) {
+      console.error('ResendCodeSection: Error calling onResend:', error);
+    }
+  };
 
   return (
     <View className={`items-center mb-6 ${className}`}>
       {canResend ? (
         <Button
           title="Resend Code"
-          onPress={onResend}
+          onPress={handleResend}
           variant="outline"
           size="medium"
           disabled={isLoading}
         />
       ) : (
         <Text className="text-textSecondary text-sm">
-          Resend code in {Math.max(0, resendTimer)} seconds
+          Resend code in {safeTimer} seconds
         </Text>
       )}
     </View>

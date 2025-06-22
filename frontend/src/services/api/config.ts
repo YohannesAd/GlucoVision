@@ -5,16 +5,24 @@
 
 // Environment-based configuration
 const getApiBaseUrl = (): string => {
-  // FastAPI backend URL
-  // Temporarily force production URL for testing
-  return 'https://glucovision-production.up.railway.app'; // Production (Railway)
+  // Check environment variable first
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  console.log('🔍 Config API URL from env:', envUrl);
 
-  // Original logic (commented out for testing):
-  // const isDevelopment = __DEV__;
-  // if (isDevelopment) {
-  //   return 'http://10.0.0.226:8000'; // FastAPI development server
-  // }
-  // return 'https://glucovision-production.up.railway.app'; // Production (Railway)
+  if (envUrl) {
+    console.log('✅ Config using environment API URL:', envUrl);
+    return envUrl;
+  }
+
+  // Fallback to development/production logic
+  const isDevelopment = __DEV__;
+  if (isDevelopment) {
+    console.log('🔧 Config using development API URL: http://localhost:8000');
+    return 'http://localhost:8000'; // Local FastAPI development server
+  }
+
+  console.log('🚀 Config using production API URL: Railway');
+  return 'https://glucovision-production.up.railway.app'; // Production (Railway)
 };
 
 export const API_CONFIG = {

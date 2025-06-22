@@ -81,27 +81,30 @@ class GlucoseLogCreate(BaseModel):
     
     @validator("reading_time")
     def validate_reading_time(cls, v):
-        """Validate reading time is not in the future"""
+        """Validate reading time is not in the future - Very permissive validation"""
         from datetime import timezone
 
         # Get current UTC time
-        now_utc = datetime.utcnow()
+        now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
 
         # Convert input to UTC for comparison
         if v.tzinfo is not None:
             # If timezone-aware, convert to UTC
             v_utc = v.astimezone(timezone.utc).replace(tzinfo=None)
         else:
-            # If timezone-naive, assume it's already in UTC
+            # For timezone-naive datetimes, be very permissive
+            # Just check if it's not more than 24 hours in the future
+            # This allows for any reasonable timezone difference
             v_utc = v
 
-        # Add a small buffer (5 minutes) to account for clock differences
-        buffer_minutes = 5
-        future_threshold = now_utc + timedelta(minutes=buffer_minutes)
+        # Very generous buffer (24 hours) to handle any timezone issues
+        # This essentially only blocks times that are clearly in the future
+        buffer_hours = 24
+        future_threshold = now_utc + timedelta(hours=buffer_hours)
 
-        # Compare with current UTC time plus buffer
+        # Only reject times that are clearly way in the future
         if v_utc > future_threshold:
-            raise ValueError("Reading time cannot be in the future")
+            raise ValueError("Reading time cannot be more than 24 hours in the future")
         return v
     
     @validator("insulin_units")

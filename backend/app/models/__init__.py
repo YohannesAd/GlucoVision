@@ -15,6 +15,7 @@ Models:
 from app.models.user import User, GenderEnum, DiabetesTypeEnum
 from app.models.glucose_log import GlucoseLog, ReadingTypeEnum, MealTypeEnum
 from app.models.password_reset import PasswordResetToken
+from app.models.email_verification import EmailVerificationToken
 from app.models.chat import ChatConversation, ChatMessage, MessageTypeEnum
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "ReadingTypeEnum",
     "MealTypeEnum",
     "PasswordResetToken",
+    "EmailVerificationToken",
     "ChatConversation",
     "ChatMessage",
     "MessageTypeEnum",

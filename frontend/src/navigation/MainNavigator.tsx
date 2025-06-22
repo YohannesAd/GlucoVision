@@ -84,3 +84,6 @@ export default function MainNavigator() {
     </MainStack.Navigator>
   );
 }
+
+// Add displayName for debugging
+MainNavigator.displayName = 'MainNavigator';

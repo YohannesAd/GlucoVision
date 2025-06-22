@@ -41,18 +41,22 @@ interface UseAPIReturn {
 
 // Get the correct API URL for React Native
 const getAPIBaseURL = () => {
-  // Temporarily force production URL for testing
-  return 'https://glucovision-production.up.railway.app';
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  console.log('🔍 Environment API URL:', envUrl);
 
-  // Original logic (commented out for testing):
-  // if (process.env.EXPO_PUBLIC_API_URL) {
-  //   return process.env.EXPO_PUBLIC_API_URL;
-  // }
-  // const isDevelopment = __DEV__;
-  // if (isDevelopment) {
-  //   return 'http://10.0.0.226:8000';
-  // }
-  // return 'https://glucovision-production.up.railway.app';
+  if (envUrl) {
+    console.log('✅ Using environment API URL:', envUrl);
+    return envUrl;
+  }
+
+  const isDevelopment = __DEV__;
+  if (isDevelopment) {
+    console.log('🔧 Using development API URL: http://localhost:8000');
+    return 'http://localhost:8000'; // Local FastAPI development server
+  }
+
+  console.log('🚀 Using production API URL: Railway');
+  return 'https://glucovision-production.up.railway.app'; // Production (Railway)
 };
 
 const DEFAULT_CONFIG: APIConfig = {
@@ -97,6 +101,13 @@ export function useAPI(config: APIConfig = {}): UseAPIReturn {
         });
       }
 
+      console.log('🌐 API Request:', {
+        method,
+        endpoint,
+        baseURL: apiConfig.baseURL,
+        fullURL: url.toString()
+      });
+
       // Build headers
       const headers = { ...apiConfig.headers };
       if (token) {
@@ -135,7 +146,18 @@ export function useAPI(config: APIConfig = {}): UseAPIReturn {
       }
 
       if (!response.ok) {
-        throw new Error(responseData?.message || responseData || `HTTP ${response.status}`);
+        let errorMessage = `HTTP ${response.status}`;
+
+        if (responseData) {
+          if (typeof responseData === 'string') {
+            errorMessage = responseData;
+          } else if (typeof responseData === 'object') {
+            errorMessage = responseData.detail || responseData.message || responseData.error || JSON.stringify(responseData);
+          }
+        }
+
+        console.log('API Error Response:', { status: response.status, data: responseData, message: errorMessage });
+        throw new Error(errorMessage);
       }
 
       // Handle success
@@ -156,9 +178,31 @@ export function useAPI(config: APIConfig = {}): UseAPIReturn {
       return result;
 
     } catch (err: any) {
-      const errorMessage = err.name === 'AbortError' 
-        ? 'Request timeout' 
-        : err.message || 'Network error occurred';
+      console.error('API Request Error:', err);
+
+      let errorMessage = 'Network error occurred';
+
+      // Enhanced error message parsing
+      if (err.name === 'AbortError') {
+        errorMessage = 'Request timeout';
+      } else if (err.response) {
+        // Server responded with error status
+        const responseData = err.response.data;
+        if (responseData && typeof responseData === 'object') {
+          errorMessage = responseData.detail || responseData.message || responseData.error || 'Server error occurred';
+        } else if (typeof responseData === 'string') {
+          errorMessage = responseData;
+        } else {
+          errorMessage = `Server error: ${err.response.status}`;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage = 'Unable to connect to server. Please check your connection.';
+      } else if (err.message && typeof err.message === 'string') {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
 
       setError(errorMessage);
 

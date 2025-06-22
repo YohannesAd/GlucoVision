@@ -40,11 +40,16 @@ export function useFormSubmission<T>({
     try {
       setIsLoading(true);
       setError(null);
-      
+
+      // Validate onSubmit function
+      if (typeof onSubmit !== 'function') {
+        throw new Error('Invalid form submission handler');
+      }
+
       await onSubmit(data);
-      
+
       setIsLoading(false);
-      
+
       if (showSuccessAlert) {
         Alert.alert(
           successTitle,
@@ -53,25 +58,60 @@ export function useFormSubmission<T>({
             {
               text: 'OK',
               onPress: () => {
-                if (resetForm) resetForm();
-                if (onSuccess) onSuccess();
+                try {
+                  if (resetForm && typeof resetForm === 'function') {
+                    resetForm();
+                  }
+                  if (onSuccess && typeof onSuccess === 'function') {
+                    onSuccess();
+                  }
+                } catch (callbackError) {
+                  console.error('useFormSubmission: Error in success callbacks:', callbackError);
+                }
               }
             }
           ]
         );
       } else {
-        if (resetForm) resetForm();
-        if (onSuccess) onSuccess();
+        try {
+          if (resetForm && typeof resetForm === 'function') {
+            resetForm();
+          }
+          if (onSuccess && typeof onSuccess === 'function') {
+            onSuccess();
+          }
+        } catch (callbackError) {
+          console.error('useFormSubmission: Error in success callbacks:', callbackError);
+        }
       }
-      
+
     } catch (err: any) {
       setIsLoading(false);
-      const errorMessage = err.message || 'An unexpected error occurred';
+
+      // Enhanced error message handling
+      let errorMessage = 'An unexpected error occurred';
+
+      if (err && typeof err === 'object') {
+        if (err.message && typeof err.message === 'string') {
+          errorMessage = err.message;
+        } else if (err.error && typeof err.error === 'string') {
+          errorMessage = err.error;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        }
+      }
+
       setError(errorMessage);
-      
-      if (onError) {
-        onError(errorMessage);
-      } else {
+
+      try {
+        if (onError && typeof onError === 'function') {
+          onError(errorMessage);
+        } else {
+          Alert.alert('Error', errorMessage);
+        }
+      } catch (errorCallbackError) {
+        console.error('useFormSubmission: Error in error callback:', errorCallbackError);
+        // Fallback alert
         Alert.alert('Error', errorMessage);
       }
     }

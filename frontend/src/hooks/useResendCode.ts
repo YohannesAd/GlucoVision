@@ -47,25 +47,39 @@ export function useResendCode({
     };
   }, [resendTimer]);
 
-  // Handle resend code
+  // Handle resend code with enhanced error handling
   const handleResendCode = async () => {
-    if (!canResend) return;
+    if (!canResend) {
+      console.warn('useResendCode: Cannot resend code yet');
+      return;
+    }
+
+    if (!email) {
+      console.error('useResendCode: Email is required for resending code');
+      return;
+    }
 
     try {
       const result = await request({
         endpoint: API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
         method: 'POST',
         data: { email },
-        showErrorAlert: false
+        showErrorAlert: true,
+        successMessage: 'New verification code sent to your email'
       });
 
-      if (result.success) {
+      if (result && result.success) {
         setResendTimer(initialTimer);
         setCanResend(false);
-        if (resetForm) resetForm();
+        if (resetForm && typeof resetForm === 'function') {
+          resetForm();
+        }
+      } else {
+        console.error('useResendCode: Failed to resend code:', result?.error);
       }
-    } catch (error) {
-      console.error('Failed to resend code:', error);
+    } catch (error: any) {
+      console.error('useResendCode: Error resending code:', error);
+      // Error is already handled by useAPI hook with showErrorAlert: true
     }
   };
 

@@ -18,14 +18,48 @@ export interface AIInsightsResponse {
       average_glucose: number;
       time_in_range: number;
       total_readings: number;
-      glucose_variability: string;
-      control_status: string;
+      glucose_variability: number;
+      coefficient_variation: number;
+      min_glucose: number;
+      max_glucose: number;
+      readings_in_range: number;
+      readings_below_range: number;
+      readings_above_range: number;
     };
     trends: {
-      direction: 'improving' | 'stable' | 'declining';
-      percentage_change: number;
-      weekly_average: number;
-      trend_confidence: number;
+      trend: string;
+      direction: string;
+      slope: number;
+      r_squared: number;
+      recent_change: number;
+      trend_strength: string;
+      predictions?: {
+        next_reading_prediction: number;
+        short_term_predictions: number[];
+        confidence_score: number;
+        prediction_reliability: string;
+      };
+    };
+    patterns: {
+      hourly_averages: Record<number, number>;
+      peak_hour: number;
+      lowest_hour: number;
+      daily_averages: Record<number, number>;
+      weekend_vs_weekday: {
+        weekend_avg: number;
+        weekday_avg: number;
+      };
+      ml_clusters?: {
+        [key: string]: {
+          avg_glucose: number;
+          common_time: number;
+          avg_carbs: number;
+          avg_exercise: number;
+          pattern_frequency: number;
+          description: string;
+        };
+      };
+      dominant_pattern?: string;
     };
     recommendations: Array<{
       type: string;
@@ -35,21 +69,51 @@ export interface AIInsightsResponse {
       action?: string;
     }>;
     risk_assessment: {
-      overall_risk: 'low' | 'moderate' | 'high';
-      hypoglycemia_risk: string;
-      hyperglycemia_risk: string;
-      variability_risk: string;
+      level: string;
+      factors: string[];
+      message: string;
     };
-    patterns: {
-      time_patterns: Record<string, any>;
-      meal_correlation: Record<string, any>;
-      best_control_times: string[];
+    time_analysis: {
+      dawn_phenomenon_detected: boolean;
+      morning_average?: number;
+      evening_average?: number;
+    };
+    meal_correlation: {
+      insufficient_meal_data?: boolean;
+      meal_averages?: Record<string, number>;
+      highest_meal_impact?: string;
+    };
+    exercise_impact: {
+      insufficient_data?: boolean;
+      exercise_average?: number;
+      no_exercise_average?: number;
+      exercise_benefit?: number;
+    };
+    medication_effectiveness: {
+      insufficient_data?: boolean;
+      with_medication_average?: number;
+      without_medication_average?: number;
+      medication_effectiveness?: number;
+    };
+    anomaly_detection: {
+      anomaly_count: number;
+      anomaly_percentage: number;
+      severe_highs: number;
+      severe_lows: number;
+      anomaly_threshold_high: number;
+      anomaly_threshold_low: number;
+      ml_anomaly_detection?: {
+        ml_anomaly_count: number;
+        ml_anomaly_percentage: number;
+        anomalous_glucose_values: number[];
+        anomaly_detection_method: string;
+      };
     };
     metadata: {
       analysis_date: string;
-      analysis_period_days: number;
-      total_logs_analyzed: number;
-      ai_version: string;
+      analysis_period_days?: number;
+      total_logs_analyzed?: number;
+      ai_version?: string;
     };
   };
 }
@@ -243,6 +307,134 @@ class AIService {
         trend: '→ Stable',
         patternScore: 7.5,
         nextCheckTime: '2h 30m'
+      };
+    }
+  }
+
+  /**
+   * Get ML Pattern Analysis for display
+   */
+  async getMLPatterns(token: string, days: number = 30): Promise<{
+    clusters: any[];
+    dominantPattern: string;
+    predictions: any;
+    anomalies: any;
+  }> {
+    try {
+      const insights = await this.getAIInsights(token, days);
+      const { data } = insights;
+
+      // Extract ML clustering patterns
+      const clusters = data.patterns.ml_clusters ?
+        Object.entries(data.patterns.ml_clusters).map(([key, value]: [string, any]) => ({
+          id: key,
+          name: value.description,
+          avgGlucose: value.avg_glucose,
+          frequency: value.pattern_frequency,
+          commonTime: value.common_time,
+          avgCarbs: value.avg_carbs,
+          avgExercise: value.avg_exercise
+        })) : [];
+
+      // Extract predictions
+      const predictions = data.trends.predictions ? {
+        nextReading: data.trends.predictions.next_reading_prediction,
+        shortTerm: data.trends.predictions.short_term_predictions,
+        confidence: data.trends.predictions.confidence_score,
+        reliability: data.trends.predictions.prediction_reliability
+      } : null;
+
+      // Extract anomaly detection
+      const anomalies = {
+        statistical: {
+          count: data.anomaly_detection.anomaly_count,
+          percentage: data.anomaly_detection.anomaly_percentage,
+          severeHighs: data.anomaly_detection.severe_highs,
+          severeLows: data.anomaly_detection.severe_lows
+        },
+        ml: data.anomaly_detection.ml_anomaly_detection ? {
+          count: data.anomaly_detection.ml_anomaly_detection.ml_anomaly_count,
+          percentage: data.anomaly_detection.ml_anomaly_detection.ml_anomaly_percentage,
+          values: data.anomaly_detection.ml_anomaly_detection.anomalous_glucose_values,
+          method: data.anomaly_detection.ml_anomaly_detection.anomaly_detection_method
+        } : null
+      };
+
+      return {
+        clusters,
+        dominantPattern: data.patterns.dominant_pattern || 'No dominant pattern identified',
+        predictions,
+        anomalies
+      };
+    } catch (error) {
+      console.error('ML patterns error:', error);
+      return {
+        clusters: [],
+        dominantPattern: 'Analysis unavailable',
+        predictions: null,
+        anomalies: { statistical: { count: 0, percentage: 0, severeHighs: 0, severeLows: 0 }, ml: null }
+      };
+    }
+  }
+
+  /**
+   * Get Advanced Analytics Summary
+   */
+  async getAdvancedAnalytics(token: string, days: number = 30): Promise<{
+    variabilityScore: number;
+    riskLevel: string;
+    exerciseImpact: string;
+    medicationEffectiveness: string;
+    timePatterns: any;
+  }> {
+    try {
+      const insights = await this.getAIInsights(token, days);
+      const { data } = insights;
+
+      // Calculate variability score
+      const variabilityScore = Math.round(100 - (data.overview.coefficient_variation || 25));
+
+      // Exercise impact analysis
+      let exerciseImpact = 'Insufficient data';
+      if (data.exercise_impact && !data.exercise_impact.insufficient_data) {
+        const benefit = data.exercise_impact.exercise_benefit || 0;
+        exerciseImpact = benefit > 10 ? 'Highly beneficial' :
+                        benefit > 5 ? 'Moderately beneficial' :
+                        benefit > 0 ? 'Slightly beneficial' : 'No clear benefit';
+      }
+
+      // Medication effectiveness
+      let medicationEffectiveness = 'Insufficient data';
+      if (data.medication_effectiveness && !data.medication_effectiveness.insufficient_data) {
+        const effectiveness = data.medication_effectiveness.medication_effectiveness || 0;
+        medicationEffectiveness = effectiveness > 20 ? 'Highly effective' :
+                                 effectiveness > 10 ? 'Moderately effective' :
+                                 effectiveness > 0 ? 'Slightly effective' : 'Limited effectiveness';
+      }
+
+      // Time patterns
+      const timePatterns = {
+        peakHour: data.patterns.peak_hour,
+        lowestHour: data.patterns.lowest_hour,
+        dawnPhenomenon: data.time_analysis.dawn_phenomenon_detected,
+        weekendVsWeekday: data.patterns.weekend_vs_weekday
+      };
+
+      return {
+        variabilityScore,
+        riskLevel: data.risk_assessment.level,
+        exerciseImpact,
+        medicationEffectiveness,
+        timePatterns
+      };
+    } catch (error) {
+      console.error('Advanced analytics error:', error);
+      return {
+        variabilityScore: 75,
+        riskLevel: 'unknown',
+        exerciseImpact: 'Analysis unavailable',
+        medicationEffectiveness: 'Analysis unavailable',
+        timePatterns: {}
       };
     }
   }

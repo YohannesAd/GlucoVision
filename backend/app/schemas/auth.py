@@ -212,10 +212,48 @@ class AuthResponse(BaseModel):
         }
 
 
+class EmailVerificationRequest(BaseModel):
+    """Email verification request schema"""
+    token: str = Field(..., description="Email verification token")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "token": "abc123def456ghi789"
+            }
+        }
+
+
+class EmailVerificationResponse(BaseModel):
+    """Email verification response schema"""
+    message: str
+    user_verified: bool = False
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Email verified successfully",
+                "user_verified": True
+            }
+        }
+
+
+class ResendVerificationRequest(BaseModel):
+    """Resend verification email request schema"""
+    email: EmailStr = Field(..., description="User email address")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com"
+            }
+        }
+
+
 class LogoutResponse(BaseModel):
     """Logout response schema"""
     message: str = "Logout successful"
-    
+
     class Config:
         json_schema_extra = {
             "example": {

@@ -101,6 +101,17 @@ class Settings(BaseSettings):
     SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
     SMTP_USERNAME: Optional[str] = Field(default=None, env="SMTP_USERNAME")
     SMTP_PASSWORD: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
+    SMTP_TLS: bool = Field(default=True, env="SMTP_TLS")
+    SMTP_SSL: bool = Field(default=False, env="SMTP_SSL")
+
+    # Email Configuration
+    FROM_EMAIL: str = Field(default="noreply@glucovision.app", env="FROM_EMAIL")
+    FROM_NAME: str = Field(default="GlucoVision", env="FROM_NAME")
+    ENABLE_EMAIL: bool = Field(default=False, env="ENABLE_EMAIL")
+
+    # Email Verification Settings
+    EMAIL_VERIFICATION_EXPIRE_HOURS: int = Field(default=24, env="EMAIL_VERIFICATION_EXPIRE_HOURS")
+    FRONTEND_URL: str = Field(default="http://localhost:19006", env="FRONTEND_URL")
     
     # Redis Settings (for caching)
     REDIS_URL: Optional[str] = Field(default=None, env="REDIS_URL")

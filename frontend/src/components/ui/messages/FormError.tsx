@@ -22,3 +22,6 @@ export default function FormError({ error, className = '' }: FormErrorProps) {
     </View>
   );
 }
+
+// Add displayName for debugging
+FormError.displayName = 'FormError';

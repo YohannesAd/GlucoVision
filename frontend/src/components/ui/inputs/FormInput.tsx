@@ -82,3 +82,6 @@ export default function FormInput({
     </View>
   );
 }
+
+// Add displayName for debugging
+FormInput.displayName = 'FormInput';

@@ -28,6 +28,8 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.models.password_reset import PasswordResetToken
+from app.models.email_verification import EmailVerificationToken
+from app.services.email_service import email_service
 from app.schemas.auth import (
     UserLogin,
     UserRegister,
@@ -39,7 +41,10 @@ from app.schemas.auth import (
     PasswordResetRequest,
     PasswordResetVerify,
     PasswordResetConfirm,
-    PasswordResetResponse
+    PasswordResetResponse,
+    EmailVerificationRequest,
+    EmailVerificationResponse,
+    ResendVerificationRequest
 )
 
 # Configure logging
@@ -89,9 +94,9 @@ async def register_user(
             last_name=user_data.last_name,
             hashed_password=security_manager.hash_password(user_data.password),
             is_active=True,
-            is_verified=False  # Email verification can be added later
+            is_verified=False  # Will be verified via email
         )
-        
+
         # Update last login and commit
         user.update_last_login()
         await db.commit()
@@ -99,17 +104,33 @@ async def register_user(
         # Refresh user to get updated data
         await db.refresh(user)
 
+        # Create email verification token
+        verification_token = await EmailVerificationToken.create_for_user(
+            db, user.id, expires_hours=24
+        )
+
+        # Send verification email
+        user_name = f"{user.first_name} {user.last_name}"
+        email_sent = await email_service.send_verification_email(
+            to_email=user.email,
+            user_name=user_name,
+            verification_token=verification_token.token
+        )
+
+        if not email_sent:
+            logger.warning(f"Failed to send verification email to {user.email}")
+
         # Generate authentication tokens (outside transaction)
         tokens = generate_user_tokens(user.id)
 
         # Serialize user data (outside transaction)
-        user_data = user.to_dict()
+        user_data_dict = user.to_dict()
 
         logger.info(f"New user registered: {user.email}")
 
         return AuthResponse(
-            message="Registration successful",
-            user=user_data,
+            message="Registration successful. Please check your email to verify your account.",
+            user=user_data_dict,
             tokens=Token(**tokens)
         )
         
@@ -441,11 +462,26 @@ async def forgot_password(
         # Create new reset token
         reset_token = await PasswordResetToken.create_for_user(db, user.id, expires_minutes=15)
 
-        # TODO: Send email with verification code
-        # For now, we'll log it (in production, use proper email service)
-        logger.info(f"Password reset code for {user.email}: {reset_token.verification_code}")
-        print(f"🔑 VERIFICATION CODE for {user.email}: {reset_token.verification_code}")
-        print("=" * 60)
+        # Send password reset email
+        user_name = f"{user.first_name} {user.last_name}"
+        email_sent = await email_service.send_password_reset_email(
+            to_email=user.email,
+            user_name=user_name,
+            verification_code=reset_token.verification_code
+        )
+
+        if not email_sent:
+            # Fallback to console logging if email fails
+            logger.warning(f"Failed to send password reset email to {user.email}")
+            import sys
+            print("\n" + "=" * 80, flush=True)
+            print(f"🔑 VERIFICATION CODE for {user.email}: {reset_token.verification_code}", flush=True)
+            print(f"📧 Email: {user.email}", flush=True)
+            print(f"⏰ Expires: {reset_token.expires_at}", flush=True)
+            print("=" * 80, flush=True)
+            print("", flush=True)
+        else:
+            logger.info(f"Password reset email sent to {user.email}")
 
         # Mask email for response
         email_parts = reset_data.email.split('@')
@@ -583,4 +619,153 @@ async def reset_password(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to reset password. Please try again."
+        )
+
+
+@router.post("/verify-email", response_model=EmailVerificationResponse)
+async def verify_email(
+    verify_data: EmailVerificationRequest,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Verify Email Address
+
+    Verifies user's email address using the verification token.
+    Activates the user account upon successful verification.
+
+    **Security Features:**
+    - Token validation
+    - Expiration checking
+    - Account activation
+    - Verification logging
+
+    **Returns:**
+    - Verification status
+    - Success message
+    """
+    try:
+        # Get verification token
+        verification_token = await EmailVerificationToken.get_valid_token(
+            db, verify_data.token
+        )
+
+        if not verification_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired verification token"
+            )
+
+        # Get user
+        user = await User.get_by_id(db, verification_token.user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User not found"
+            )
+
+        # Mark user as verified
+        user.is_verified = True
+
+        # Mark token as used
+        verification_token.mark_as_used()
+
+        # Commit changes
+        await db.commit()
+
+        # Send welcome email
+        user_name = f"{user.first_name} {user.last_name}"
+        welcome_sent = await email_service.send_welcome_email(
+            to_email=user.email,
+            user_name=user_name
+        )
+
+        if not welcome_sent:
+            logger.warning(f"Failed to send welcome email to {user.email}")
+
+        logger.info(f"Email verified for user: {user.email}")
+
+        return EmailVerificationResponse(
+            message="Email verified successfully. Your account is now active. Welcome to GlucoVision!",
+            user_verified=True
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Email verification error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify email. Please try again."
+        )
+
+
+@router.post("/resend-verification", response_model=EmailVerificationResponse)
+async def resend_verification_email(
+    resend_data: ResendVerificationRequest,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Resend Verification Email
+
+    Sends a new verification email to the user.
+    Invalidates previous tokens and creates a new one.
+
+    **Security Features:**
+    - User validation
+    - Token invalidation
+    - Rate limiting protection
+    - Email delivery confirmation
+
+    **Returns:**
+    - Success message
+    - Email delivery status
+    """
+    try:
+        # Get user by email
+        user = await User.get_by_email(db, resend_data.email)
+        if not user:
+            # Don't reveal if email exists for security
+            return EmailVerificationResponse(
+                message="If this email is registered and unverified, a new verification email has been sent."
+            )
+
+        # Check if user is already verified
+        if user.is_verified:
+            return EmailVerificationResponse(
+                message="This email address is already verified."
+            )
+
+        # Invalidate existing verification tokens
+        await EmailVerificationToken.invalidate_user_tokens(db, user.id)
+
+        # Create new verification token
+        verification_token = await EmailVerificationToken.create_for_user(
+            db, user.id, expires_hours=24
+        )
+
+        # Send verification email
+        user_name = f"{user.first_name} {user.last_name}"
+        email_sent = await email_service.send_verification_email(
+            to_email=user.email,
+            user_name=user_name,
+            verification_token=verification_token.token
+        )
+
+        if not email_sent:
+            logger.warning(f"Failed to resend verification email to {user.email}")
+            return EmailVerificationResponse(
+                message="Failed to send verification email. Please try again later."
+            )
+
+        logger.info(f"Verification email resent to: {user.email}")
+
+        return EmailVerificationResponse(
+            message="Verification email sent. Please check your inbox."
+        )
+
+    except Exception as e:
+        logger.error(f"Resend verification error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to resend verification email. Please try again."
         )

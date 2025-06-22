@@ -33,3 +33,6 @@ export default function FormContainer({
     </KeyboardAvoidingView>
   );
 }
+
+// Add displayName for debugging
+FormContainer.displayName = 'FormContainer';

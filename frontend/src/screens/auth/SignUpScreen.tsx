@@ -40,3 +40,6 @@ export default function SignUpScreen({ navigation }: SignUpScreenProps) {
     </ScreenContainer>
   );
 }
+
+// Add displayName for debugging
+SignUpScreen.displayName = 'SignUpScreen';
