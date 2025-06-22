@@ -28,7 +28,7 @@ export default function MLInsightsCard({
   advancedAnalytics,
   className = ''
 }: MLInsightsCardProps) {
-  
+
   const getRiskColor = (level: string) => {
     switch (level.toLowerCase()) {
       case 'low': return 'text-green-600 bg-green-100';
@@ -44,27 +44,34 @@ export default function MLInsightsCard({
     return 'text-red-600 bg-red-100';
   };
 
+  const formatTime12Hour = (hour24: number) => {
+    if (hour24 === 0) return '12:00 AM';
+    if (hour24 === 12) return '12:00 PM';
+    if (hour24 < 12) return `${hour24}:00 AM`;
+    return `${hour24 - 12}:00 PM`;
+  };
+
   return (
     <View className={`bg-white rounded-xl p-6 shadow-sm ${className}`}>
       {/* Header */}
       <View className="mb-6">
         <Text className="text-xl font-bold text-darkBlue mb-2">
-          🧠 Advanced ML Analysis
+          📊 Advanced Glucose Analysis
         </Text>
         <Text className="text-textSecondary text-sm">
-          Machine learning insights from your glucose patterns
+          Comprehensive insights from your glucose patterns
         </Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ML Pattern Clusters */}
+        {/* Glucose Behavior Patterns */}
         {mlData.clusters.length > 0 && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              🔍 Pattern Recognition (K-Means Clustering)
+              🔍 Glucose Behavior Patterns
             </Text>
             <Text className="text-sm text-textSecondary mb-3">
-              AI identified {mlData.clusters.length} distinct glucose behavior patterns:
+              We identified {mlData.clusters.length} distinct patterns in your glucose behavior:
             </Text>
             
             {mlData.clusters.map((cluster, index) => (
@@ -85,7 +92,7 @@ export default function MLInsightsCard({
                   </View>
                   <View className="bg-white px-2 py-1 rounded">
                     <Text className="text-xs text-darkBlue">
-                      Time: {cluster.commonTime}:00
+                      Time: {formatTime12Hour(cluster.commonTime)}
                     </Text>
                   </View>
                 </View>
@@ -100,16 +107,16 @@ export default function MLInsightsCard({
           </View>
         )}
 
-        {/* ML Predictions */}
+        {/* Glucose Predictions */}
         {mlData.predictions && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              📈 AI Predictions (Linear Regression)
+              📈 Glucose Forecasting
             </Text>
-            
+
             <View className="bg-purple-50 rounded-lg p-4">
               <Text className="font-semibold text-purple-800 mb-2">
-                Next Reading Prediction
+                Predicted Next Reading
               </Text>
               <Text className="text-2xl font-bold text-purple-600 mb-2">
                 {mlData.predictions.nextReading} mg/dL
@@ -152,31 +159,31 @@ export default function MLInsightsCard({
           </View>
         )}
 
-        {/* Anomaly Detection */}
+        {/* Unusual Readings Detection */}
         <View className="mb-6">
           <Text className="text-lg font-semibold text-darkBlue mb-3">
-            🚨 Anomaly Detection
+            🚨 Unusual Reading Detection
           </Text>
-          
+
           <View className="bg-red-50 rounded-lg p-4 mb-3">
             <Text className="font-semibold text-red-800 mb-2">
-              Statistical Analysis
+              Pattern Analysis
             </Text>
             <View className="flex-row justify-between">
               <View>
                 <Text className="text-sm text-red-600">
-                  Anomalies: {mlData.anomalies.statistical.count}
+                  Unusual Readings: {mlData.anomalies.statistical.count}
                 </Text>
                 <Text className="text-xs text-red-500">
-                  {mlData.anomalies.statistical.percentage}% of readings
+                  {mlData.anomalies.statistical.percentage}% of total readings
                 </Text>
               </View>
               <View>
                 <Text className="text-sm text-red-600">
-                  Severe Events: {mlData.anomalies.statistical.severeHighs + mlData.anomalies.statistical.severeLows}
+                  Critical Events: {mlData.anomalies.statistical.severeHighs + mlData.anomalies.statistical.severeLows}
                 </Text>
                 <Text className="text-xs text-red-500">
-                  {mlData.anomalies.statistical.severeHighs} highs, {mlData.anomalies.statistical.severeLows} lows
+                  {mlData.anomalies.statistical.severeHighs} very high, {mlData.anomalies.statistical.severeLows} very low
                 </Text>
               </View>
             </View>
@@ -185,14 +192,14 @@ export default function MLInsightsCard({
           {mlData.anomalies.ml && (
             <View className="bg-orange-50 rounded-lg p-4">
               <Text className="font-semibold text-orange-800 mb-2">
-                🤖 {mlData.anomalies.ml.method}
+                🤖 Advanced Pattern Detection
               </Text>
               <Text className="text-sm text-orange-600 mb-2">
-                ML detected {mlData.anomalies.ml.count} anomalous patterns ({mlData.anomalies.ml.percentage}%)
+                Advanced analysis found {mlData.anomalies.ml.count} unusual patterns ({mlData.anomalies.ml.percentage}%)
               </Text>
               {mlData.anomalies.ml.values.length > 0 && (
                 <View>
-                  <Text className="text-xs text-orange-500 mb-1">Anomalous values:</Text>
+                  <Text className="text-xs text-orange-500 mb-1">Unusual glucose values:</Text>
                   <Text className="text-sm text-orange-600">
                     {mlData.anomalies.ml.values.slice(0, 5).join(', ')} mg/dL
                     {mlData.anomalies.ml.values.length > 5 && '...'}
@@ -272,20 +279,20 @@ export default function MLInsightsCard({
         {advancedAnalytics.timePatterns && (
           <View className="mb-4">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              ⏰ Time Pattern Analysis
+              ⏰ Daily Glucose Patterns
             </Text>
             
             <View className="bg-blue-50 rounded-lg p-4">
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-blue-700">Peak Hour:</Text>
+                <Text className="text-sm text-blue-700">Highest Glucose Time:</Text>
                 <Text className="text-sm font-semibold text-blue-800">
-                  {advancedAnalytics.timePatterns.peakHour}:00
+                  {formatTime12Hour(advancedAnalytics.timePatterns.peakHour)}
                 </Text>
               </View>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-blue-700">Lowest Hour:</Text>
+                <Text className="text-sm text-blue-700">Lowest Glucose Time:</Text>
                 <Text className="text-sm font-semibold text-blue-800">
-                  {advancedAnalytics.timePatterns.lowestHour}:00
+                  {formatTime12Hour(advancedAnalytics.timePatterns.lowestHour)}
                 </Text>
               </View>
               {advancedAnalytics.timePatterns.dawnPhenomenon && (

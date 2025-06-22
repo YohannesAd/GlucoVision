@@ -19,9 +19,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import mean_squared_error
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional, Tuple
+from datetime import datetime
+from typing import List, Dict, Any
 import logging
 import statistics
 
@@ -413,10 +412,10 @@ class GlucoseAIService:
         avg_carbs = cluster_data['carbs_consumed'].mean()
 
         time_desc = "morning" if common_hour < 12 else "afternoon" if common_hour < 18 else "evening"
-        glucose_desc = "high" if avg_glucose > 150 else "normal" if avg_glucose > 80 else "low"
-        carb_desc = "high-carb" if avg_carbs > 50 else "moderate-carb" if avg_carbs > 20 else "low-carb"
+        glucose_desc = "elevated" if avg_glucose > 150 else "optimal" if avg_glucose > 80 else "low"
+        carb_desc = "higher carbohydrate" if avg_carbs > 50 else "moderate carbohydrate" if avg_carbs > 20 else "lower carbohydrate"
 
-        return f"{glucose_desc} glucose {time_desc} pattern with {carb_desc} meals"
+        return f"{glucose_desc} glucose levels during {time_desc} with {carb_desc} intake"
 
     def _generate_glucose_predictions(self, df: pd.DataFrame, model: LinearRegression) -> Dict[str, Any]:
         """Generate glucose predictions using trained ML model"""

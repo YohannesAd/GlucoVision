@@ -183,7 +183,7 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
           >
             <Text className="text-darkBlue text-lg">← Back</Text>
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-darkBlue">AI Trends</Text>
+          <Text className="text-xl font-bold text-darkBlue">Gluco Trends</Text>
           <Button
             title="🤖 Chat"
             onPress={handleAIChat}
@@ -200,8 +200,8 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
       >
         {/* AI Statistics */}
         <DataSection
-          title="AI Health Insights"
-          subtitle={`AI analyzed ${processedData?.statistics[2]?.value || 0} glucose readings`}
+          title="Gluco Health Insights"
+          subtitle={`Analysis of ${processedData?.statistics[2]?.value || 0} glucose readings`}
           isLoading={isLoading}
           error={error}
           isEmpty={!processedData}
@@ -257,9 +257,9 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
           )}
         </DataSection>
 
-        {/* AI Insights */}
+        {/* Gluco Insights */}
         <DataSection
-          title="AI Insights & Recommendations"
+          title="Gluco Insights & Recommendations"
           subtitle="Personalized insights based on your glucose patterns"
           isLoading={isLoading}
           error={error}
@@ -276,11 +276,11 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
           ))}
         </DataSection>
 
-        {/* Advanced ML Insights */}
+        {/* Advanced Glucose Analysis */}
         {aiData?.mlPatterns && aiData?.analytics && (
           <DataSection
-            title="🧠 Advanced ML Analysis"
-            subtitle="Machine learning insights from your glucose data"
+            title="📊 Advanced Glucose Analysis"
+            subtitle="Comprehensive insights from your glucose patterns"
             isLoading={isLoading}
             error={error}
             isEmpty={false}

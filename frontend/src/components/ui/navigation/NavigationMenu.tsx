@@ -35,7 +35,7 @@ export default function HamburgerMenu({ isVisible, onClose, onNavigate }: Hambur
     { id: 'account', title: 'Account', icon: '👤' },
     { id: 'addLog', title: 'Add Log', icon: '➕' },
     { id: 'viewLogs', title: 'View Logs', icon: '📊' },
-    { id: 'aiTrends', title: 'AI Trends', icon: '🤖' },
+    { id: 'aiTrends', title: 'Gluco Trends', icon: '📈' },
   ];
 
   const handleMenuItemPress = (screenId: string) => {

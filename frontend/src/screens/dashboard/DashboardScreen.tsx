@@ -220,15 +220,15 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           )}
         </DataSection>
 
-        {/* AI Insights */}
+        {/* Gluco Insights */}
         <DataSection
-          title="AI Insights"
+          title="Gluco Insights"
           subtitle="Personalized recommendations"
           isLoading={isLoading}
           error={error}
           isEmpty={!dashboardData?.aiInsights?.length}
-          emptyTitle="AI Insights Loading"
-          emptyMessage="Add more glucose readings to get personalized AI insights"
+          emptyTitle="Gluco Insights Loading"
+          emptyMessage="Add more glucose readings to get personalized insights"
           emptyActionText="Add Reading"
           onEmptyAction={handleAddLog}
           className="mx-4 mt-4"
@@ -247,7 +247,7 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
               insight={{
                 id: `insight-${index}`,
                 type: 'recommendation',
-                title: insight.title || 'AI Recommendation',
+                title: insight.title || 'Gluco Recommendation',
                 message: insight.message || 'Continue monitoring your glucose levels.',
                 confidence: insight.confidence || 85,
                 actionable: true,
@@ -262,10 +262,10 @@ export default function DashboardScreen({ navigation }: DashboardScreenProps) {
           ))}
         </DataSection>
 
-        {/* AI Chat Navigation */}
+        {/* Gluco Chat Navigation */}
         <View className="mx-4 mt-4 mb-2">
           <Button
-            title="💬 Ask AI Assistant"
+            title="💬 Ask Gluco Assistant"
             onPress={() => navigation.navigate('AIChat')}
             variant="outline"
             size="large"
