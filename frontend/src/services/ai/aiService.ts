@@ -395,7 +395,7 @@ class AIService {
       const variabilityScore = Math.round(100 - (data.overview.coefficient_variation || 25));
 
       // Exercise impact analysis
-      let exerciseImpact = 'Insufficient data';
+      let exerciseImpact = 'Not tracked';
       if (data.exercise_impact && !data.exercise_impact.insufficient_data) {
         const benefit = data.exercise_impact.exercise_benefit || 0;
         exerciseImpact = benefit > 10 ? 'Highly beneficial' :
@@ -404,7 +404,7 @@ class AIService {
       }
 
       // Medication effectiveness
-      let medicationEffectiveness = 'Insufficient data';
+      let medicationEffectiveness = 'Not tracked';
       if (data.medication_effectiveness && !data.medication_effectiveness.insufficient_data) {
         const effectiveness = data.medication_effectiveness.medication_effectiveness || 0;
         medicationEffectiveness = effectiveness > 20 ? 'Highly effective' :

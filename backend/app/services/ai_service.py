@@ -83,8 +83,8 @@ class GlucoseAIService:
                 "risk_assessment": risk_assessment,
                 "time_analysis": time_analysis,
                 "meal_correlation": meal_correlation,
-                "exercise_impact": self._analyze_exercise_impact(df),
-                "medication_effectiveness": self._analyze_medication_impact(df),
+                "exercise_impact": {"insufficient_data": True, "message": "Exercise tracking not available"},
+                "medication_effectiveness": {"insufficient_data": True, "message": "Medication tracking not available"},
                 "anomaly_detection": anomaly_detection
             }
 
@@ -234,7 +234,7 @@ class GlucoseAIService:
         return recommendations
 
     def _logs_to_dataframe(self, logs: List[GlucoseLog]) -> pd.DataFrame:
-        """Convert glucose logs to pandas DataFrame for ML analysis"""
+        """Convert glucose logs to pandas DataFrame for analysis using available data only"""
         data = []
         for log in logs:
             data.append({
@@ -242,17 +242,11 @@ class GlucoseAIService:
                 'reading_time': log.reading_time,
                 'reading_type': log.reading_type.value if log.reading_type else 'unknown',
                 'meal_type': log.meal_type.value if log.meal_type else None,
-                'carbs_consumed': log.carbs_consumed or 0,
-                'exercise_duration': log.exercise_duration or 0,
-                'insulin_taken': log.insulin_taken,
-                'insulin_units': log.insulin_units or 0,
-                'medication_taken': log.medication_taken,
-                'stress_level': log.stress_level or 5,
-                'sleep_hours': log.sleep_hours or 8,
-                'illness': log.illness,
                 'hour': log.reading_time.hour,
                 'day_of_week': log.reading_time.weekday(),
-                'is_weekend': log.reading_time.weekday() >= 5
+                'is_weekend': log.reading_time.weekday() >= 5,
+                'notes': log.notes or '',
+                'has_notes': bool(log.notes and log.notes.strip())
             })
 
         df = pd.DataFrame(data)
@@ -364,12 +358,18 @@ class GlucoseAIService:
             'weekday_avg': round(float(df[~df['is_weekend']]['glucose_value'].mean()), 1)
         }
 
-        # Advanced ML Pattern Recognition with K-Means Clustering
+        # Advanced Pattern Recognition with K-Means Clustering (using available data only)
         if len(df) >= 10:  # Need enough data for clustering
             try:
-                # Create feature matrix for clustering
-                features = df[['glucose_value', 'hour', 'day_of_week', 'carbs_consumed',
-                              'exercise_duration', 'stress_level', 'sleep_hours']].fillna(0)
+                # Create feature matrix for clustering using only available data
+                features = df[['glucose_value', 'hour', 'day_of_week']].copy()
+
+                # Add reading type as numeric feature
+                reading_type_map = {'fasting': 1, 'before_meal': 2, 'after_meal': 3, 'bedtime': 4, 'random': 5}
+                features['reading_type_numeric'] = df['reading_type'].map(reading_type_map).fillna(5)
+
+                # Add weekend indicator
+                features['is_weekend_numeric'] = df['is_weekend'].astype(int)
 
                 # Scale features for better clustering
                 features_scaled = self.scaler.fit_transform(features)
@@ -389,10 +389,10 @@ class GlucoseAIService:
                     cluster_analysis[f'pattern_{cluster_id}'] = {
                         'avg_glucose': round(float(cluster_data['glucose_value'].mean()), 1),
                         'common_time': int(cluster_data['hour'].mode().iloc[0]) if len(cluster_data) > 0 else 12,
-                        'avg_carbs': round(float(cluster_data['carbs_consumed'].mean()), 1),
-                        'avg_exercise': round(float(cluster_data['exercise_duration'].mean()), 1),
+                        'common_reading_type': cluster_data['reading_type'].mode().iloc[0] if len(cluster_data) > 0 else 'random',
+                        'weekend_frequency': round(float(cluster_data['is_weekend'].mean() * 100), 1),
                         'pattern_frequency': len(cluster_data),
-                        'description': self._describe_cluster_pattern(cluster_data)
+                        'description': self._describe_cluster_pattern_simple(cluster_data)
                     }
 
                 patterns['ml_clusters'] = cluster_analysis
@@ -416,6 +416,43 @@ class GlucoseAIService:
         carb_desc = "higher carbohydrate" if avg_carbs > 50 else "moderate carbohydrate" if avg_carbs > 20 else "lower carbohydrate"
 
         return f"{glucose_desc} glucose levels during {time_desc} with {carb_desc} intake"
+
+    def _describe_cluster_pattern_simple(self, cluster_data: pd.DataFrame) -> str:
+        """Generate human-readable description using only available data"""
+        avg_glucose = cluster_data['glucose_value'].mean()
+        common_hour = cluster_data['hour'].mode().iloc[0] if len(cluster_data) > 0 else 12
+        common_reading_type = cluster_data['reading_type'].mode().iloc[0] if len(cluster_data) > 0 else 'random'
+        weekend_freq = cluster_data['is_weekend'].mean()
+
+        # Time description
+        if common_hour < 6:
+            time_desc = "early morning"
+        elif common_hour < 12:
+            time_desc = "morning"
+        elif common_hour < 17:
+            time_desc = "afternoon"
+        elif common_hour < 21:
+            time_desc = "evening"
+        else:
+            time_desc = "night"
+
+        # Glucose description
+        if avg_glucose > 180:
+            glucose_desc = "elevated"
+        elif avg_glucose > 120:
+            glucose_desc = "moderate"
+        elif avg_glucose > 80:
+            glucose_desc = "optimal"
+        else:
+            glucose_desc = "low"
+
+        # Reading type description
+        reading_desc = common_reading_type.replace('_', ' ')
+
+        # Weekend pattern
+        day_pattern = "weekend" if weekend_freq > 0.6 else "weekday" if weekend_freq < 0.4 else "mixed day"
+
+        return f"{glucose_desc} glucose during {time_desc} {reading_desc} readings, mostly on {day_pattern}s"
 
     def _generate_glucose_predictions(self, df: pd.DataFrame, model: LinearRegression) -> Dict[str, Any]:
         """Generate glucose predictions using trained ML model"""
@@ -470,14 +507,17 @@ class GlucoseAIService:
         }
 
     def _ml_anomaly_detection(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Advanced ML-based anomaly detection using Isolation Forest"""
+        """Advanced ML-based anomaly detection using available data only"""
         try:
             if len(df) < 10:
                 return {"insufficient_data": True}
 
-            # Prepare features for anomaly detection
-            features = df[['glucose_value', 'hour', 'carbs_consumed',
-                          'exercise_duration', 'stress_level']].fillna(0)
+            # Prepare features for anomaly detection using only available data
+            features = df[['glucose_value', 'hour', 'day_of_week']].copy()
+
+            # Add reading type as numeric feature
+            reading_type_map = {'fasting': 1, 'before_meal': 2, 'after_meal': 3, 'bedtime': 4, 'random': 5}
+            features['reading_type_numeric'] = df['reading_type'].map(reading_type_map).fillna(5)
 
             # Scale features
             features_scaled = self.scaler.fit_transform(features)
@@ -494,7 +534,7 @@ class GlucoseAIService:
                 "ml_anomaly_count": len(anomaly_indices),
                 "ml_anomaly_percentage": round((len(anomaly_indices) / len(df)) * 100, 1),
                 "anomalous_glucose_values": [round(float(val), 1) for val in anomalous_readings['glucose_value'].tolist()],
-                "anomaly_detection_method": "Isolation Forest ML Algorithm"
+                "anomaly_detection_method": "Advanced Pattern Detection"
             }
 
         except Exception as e:

@@ -95,6 +95,11 @@ export default function MLInsightsCard({
                       Time: {formatTime12Hour(cluster.commonTime)}
                     </Text>
                   </View>
+                  <View className="bg-white px-2 py-1 rounded">
+                    <Text className="text-xs text-darkBlue">
+                      Type: {cluster.commonReadingType || 'Mixed'}
+                    </Text>
+                  </View>
                 </View>
               </View>
             ))}
