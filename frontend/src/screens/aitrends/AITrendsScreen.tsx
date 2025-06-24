@@ -279,7 +279,7 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
         {/* Advanced Glucose Analysis */}
         {aiData?.mlPatterns && aiData?.analytics && (
           <DataSection
-            title="📊 Advanced Glucose Analysis"
+            title="Advanced Glucose Analysis"
             subtitle="Comprehensive insights from your glucose patterns"
             isLoading={isLoading}
             error={error}

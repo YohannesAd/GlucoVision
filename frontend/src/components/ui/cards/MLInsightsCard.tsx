@@ -56,7 +56,7 @@ export default function MLInsightsCard({
       {/* Header */}
       <View className="mb-6">
         <Text className="text-xl font-bold text-darkBlue mb-2">
-          📊 Advanced Glucose Analysis
+           Advanced Glucose Analysis
         </Text>
         <Text className="text-textSecondary text-sm">
           Comprehensive insights from your glucose patterns
@@ -68,7 +68,7 @@ export default function MLInsightsCard({
         {mlData.clusters.length > 0 && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              🔍 Glucose Behavior Patterns
+               Glucose Behavior Patterns
             </Text>
             <Text className="text-sm text-textSecondary mb-3">
               We identified {mlData.clusters.length} distinct patterns in your glucose behavior:
@@ -106,7 +106,7 @@ export default function MLInsightsCard({
             
             <View className="bg-blue-50 rounded-lg p-3">
               <Text className="text-sm font-medium text-blue-800">
-                🎯 Dominant Pattern: {mlData.dominantPattern}
+                 Dominant Pattern: {mlData.dominantPattern}
               </Text>
             </View>
           </View>
@@ -116,7 +116,7 @@ export default function MLInsightsCard({
         {mlData.predictions && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              📈 Glucose Forecasting
+              Glucose Forecasting
             </Text>
 
             <View className="bg-purple-50 rounded-lg p-4">
@@ -197,7 +197,7 @@ export default function MLInsightsCard({
           {mlData.anomalies.ml && (
             <View className="bg-orange-50 rounded-lg p-4">
               <Text className="font-semibold text-orange-800 mb-2">
-                🤖 Advanced Pattern Detection
+                 Advanced Pattern Detection
               </Text>
               <Text className="text-sm text-orange-600 mb-2">
                 Advanced analysis found {mlData.anomalies.ml.count} unusual patterns ({mlData.anomalies.ml.percentage}%)
@@ -218,7 +218,7 @@ export default function MLInsightsCard({
         {/* Advanced Analytics */}
         <View className="mb-6">
           <Text className="text-lg font-semibold text-darkBlue mb-3">
-            📊 Advanced Analytics
+             Advanced Analytics
           </Text>
           
           <View className="space-y-3">
@@ -248,7 +248,7 @@ export default function MLInsightsCard({
                 </View>
               </View>
               <Text className="text-xs text-textSecondary mt-1">
-                ML-based diabetes risk evaluation
+                GlucoVision diabetes risk evaluation
               </Text>
             </View>
 
@@ -284,7 +284,7 @@ export default function MLInsightsCard({
         {advancedAnalytics.timePatterns && (
           <View className="mb-4">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
-              ⏰ Daily Glucose Patterns
+               Daily Glucose Patterns
             </Text>
             
             <View className="bg-blue-50 rounded-lg p-4">
@@ -303,7 +303,7 @@ export default function MLInsightsCard({
               {advancedAnalytics.timePatterns.dawnPhenomenon && (
                 <View className="bg-yellow-100 rounded p-2 mt-2">
                   <Text className="text-xs text-yellow-800">
-                    🌅 Dawn phenomenon detected - morning glucose rise
+                     Dawn phenomenon detected - morning glucose rise
                   </Text>
                 </View>
               )}
