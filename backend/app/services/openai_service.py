@@ -48,9 +48,28 @@ class OpenAIService:
         else:
             logger.info("Initializing OpenAI client with API key")
             try:
-                # Try to initialize OpenAI client with proper error handling
-                self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                # Try to initialize OpenAI client with explicit parameters to avoid proxy issues
+                self.client = AsyncOpenAI(
+                    api_key=settings.OPENAI_API_KEY,
+                    timeout=30.0,  # Explicit timeout
+                    max_retries=3   # Explicit retry count
+                )
                 logger.info("OpenAI client initialized successfully")
+            except TypeError as e:
+                if "proxies" in str(e):
+                    logger.warning(f"Proxy-related initialization error: {e}")
+                    # Try alternative initialization without any optional parameters
+                    try:
+                        import openai
+                        logger.info(f"OpenAI library version: {openai.__version__}")
+                        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                        logger.info("OpenAI client initialized successfully with minimal parameters")
+                    except Exception as e2:
+                        logger.error(f"Failed to initialize OpenAI client even with minimal parameters: {e2}")
+                        self.client = None
+                else:
+                    logger.error(f"Failed to initialize OpenAI client: {e}")
+                    self.client = None
             except Exception as e:
                 logger.error(f"Failed to initialize OpenAI client: {e}")
                 logger.warning("OpenAI client initialization failed. Chat will use fallback responses.")
@@ -65,7 +84,35 @@ class OpenAIService:
             "\n\n⚠️ This AI provides general diabetes information only. "
             "Always consult your healthcare provider for medical decisions."
         )
-    
+
+        # Track if we've tested the API key
+        self._api_key_tested = False
+
+    async def _test_api_key(self) -> bool:
+        """Test if the OpenAI API key is valid and working"""
+        if not self.client or self._api_key_tested:
+            return False
+
+        try:
+            logger.info("Testing OpenAI API key validity...")
+
+            # Simple test request to validate the API key
+            response = await self.client.chat.completions.create(
+                model="gpt-3.5-turbo",  # Use cheaper model for testing
+                messages=[{"role": "user", "content": "Hello"}],
+                max_tokens=5
+            )
+
+            self._api_key_tested = True
+            logger.info("✅ OpenAI API key test successful!")
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ OpenAI API key test failed: {e}")
+            logger.error(f"API key starts with: {settings.OPENAI_API_KEY[:20]}...")
+            self.client = None  # Disable client if key doesn't work
+            return False
+
     def _create_system_prompt(self, user: User, glucose_context: Dict[str, Any]) -> str:
         """Create specialized system prompt for diabetes management"""
         
@@ -171,6 +218,13 @@ RESPONSE STYLE:
         if not self.client or not settings.ENABLE_OPENAI_CHAT:
             logger.warning("Using fallback response - OpenAI not available")
             return self._fallback_response(user_message)
+
+        # Test API key on first use
+        if not self._api_key_tested:
+            api_key_valid = await self._test_api_key()
+            if not api_key_valid:
+                logger.warning("API key test failed - using fallback response")
+                return self._fallback_response(user_message)
         
         try:
             # Create system prompt with medical context
