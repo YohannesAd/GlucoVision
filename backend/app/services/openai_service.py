@@ -36,12 +36,19 @@ class OpenAIService:
     
     def __init__(self):
         """Initialize OpenAI service with configuration"""
+        # Debug logging for OpenAI configuration
+        logger.info(f"OpenAI Configuration Debug:")
+        logger.info(f"  OPENAI_API_KEY: {'SET' if settings.OPENAI_API_KEY else 'NOT SET'}")
+        logger.info(f"  ENABLE_OPENAI_CHAT: {settings.ENABLE_OPENAI_CHAT}")
+        logger.info(f"  OPENAI_MODEL: {settings.OPENAI_MODEL}")
+
         if not settings.OPENAI_API_KEY:
             logger.warning("OpenAI API key not configured. Chat will use fallback responses.")
             self.client = None
         else:
+            logger.info("Initializing OpenAI client with API key")
             self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        
+
         self.model = settings.OPENAI_MODEL
         self.max_tokens = settings.OPENAI_MAX_TOKENS
         self.temperature = settings.OPENAI_TEMPERATURE
@@ -148,7 +155,14 @@ RESPONSE STYLE:
             Dict containing response and metadata
         """
         
+        # Debug logging
+        logger.info(f"OpenAI Response Generation:")
+        logger.info(f"  Client available: {self.client is not None}")
+        logger.info(f"  ENABLE_OPENAI_CHAT: {settings.ENABLE_OPENAI_CHAT}")
+        logger.info(f"  User message: {user_message[:50]}...")
+
         if not self.client or not settings.ENABLE_OPENAI_CHAT:
+            logger.warning("Using fallback response - OpenAI not available")
             return self._fallback_response(user_message)
         
         try:
