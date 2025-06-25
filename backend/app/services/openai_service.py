@@ -56,31 +56,34 @@ class OpenAIService:
         else:
             logger.info("Initializing OpenAI client with API key")
             try:
-                # Try to initialize OpenAI client with explicit parameters to avoid proxy issues
-                self.client = AsyncOpenAI(
-                    api_key=settings.OPENAI_API_KEY,
-                    timeout=30.0,  # Explicit timeout
-                    max_retries=3   # Explicit retry count
-                )
-                logger.info("OpenAI client initialized successfully")
-            except TypeError as e:
-                if "proxies" in str(e):
-                    logger.warning(f"Proxy-related initialization error: {e}")
-                    # Try alternative initialization without any optional parameters
+                # Try multiple initialization approaches to handle version compatibility
+                import openai
+                logger.info(f"OpenAI library version: {openai.__version__}")
+
+                # Method 1: Try with just API key (most compatible)
+                try:
+                    self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                    logger.info("✅ OpenAI client initialized successfully with minimal parameters")
+                except Exception as e1:
+                    logger.warning(f"Method 1 failed: {e1}")
+
+                    # Method 2: Try importing and using the client differently
                     try:
-                        import openai
-                        logger.info(f"OpenAI library version: {openai.__version__}")
+                        from openai import OpenAI
+                        # Create sync client first to test
+                        sync_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                        logger.info("Sync OpenAI client works, trying async...")
                         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-                        logger.info("OpenAI client initialized successfully with minimal parameters")
+                        logger.info("✅ OpenAI client initialized successfully with sync test")
                     except Exception as e2:
-                        logger.error(f"Failed to initialize OpenAI client even with minimal parameters: {e2}")
+                        logger.error(f"Method 2 failed: {e2}")
+
+                        # Method 3: Force disable and use fallback
+                        logger.error("All OpenAI initialization methods failed")
                         self.client = None
-                else:
-                    logger.error(f"Failed to initialize OpenAI client: {e}")
-                    self.client = None
+
             except Exception as e:
-                logger.error(f"Failed to initialize OpenAI client: {e}")
-                logger.warning("OpenAI client initialization failed. Chat will use fallback responses.")
+                logger.error(f"OpenAI import/initialization completely failed: {e}")
                 self.client = None
 
         self.model = settings.OPENAI_MODEL
@@ -95,6 +98,13 @@ class OpenAIService:
 
         # Track if we've tested the API key
         self._api_key_tested = False
+
+        # If OpenAI client failed, try to use direct HTTP requests as backup
+        if not self.client and settings.OPENAI_API_KEY:
+            logger.info("OpenAI client failed, will try direct HTTP requests as backup")
+            self._use_http_fallback = True
+        else:
+            self._use_http_fallback = False
 
     async def _test_api_key(self) -> bool:
         """Test if the OpenAI API key is valid and working"""
@@ -120,6 +130,37 @@ class OpenAIService:
             logger.error(f"API key starts with: {settings.OPENAI_API_KEY[:20]}...")
             self.client = None  # Disable client if key doesn't work
             return False
+
+    async def _openai_http_request(self, messages: list, model: str = "gpt-3.5-turbo") -> str:
+        """Direct HTTP request to OpenAI API as fallback when library fails"""
+        import aiohttp
+
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, headers=headers, json=data) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        return result["choices"][0]["message"]["content"]
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"OpenAI HTTP request failed: {response.status} - {error_text}")
+                        return None
+        except Exception as e:
+            logger.error(f"OpenAI HTTP request exception: {e}")
+            return None
 
     def _create_system_prompt(self, user: User, glucose_context: Dict[str, Any]) -> str:
         """Create specialized system prompt for diabetes management"""
@@ -223,16 +264,22 @@ RESPONSE STYLE:
         logger.info(f"  ENABLE_OPENAI_CHAT: {settings.ENABLE_OPENAI_CHAT}")
         logger.info(f"  User message: {user_message[:50]}...")
 
-        if not self.client or not settings.ENABLE_OPENAI_CHAT:
-            logger.warning("Using fallback response - OpenAI not available")
+        # Check if OpenAI is available (either client or HTTP fallback)
+        if not settings.ENABLE_OPENAI_CHAT:
+            logger.warning("OpenAI chat disabled - using fallback response")
             return self._fallback_response(user_message)
 
-        # Test API key on first use
-        if not self._api_key_tested:
+        if not self.client and not self._use_http_fallback:
+            logger.warning("OpenAI not available - using fallback response")
+            return self._fallback_response(user_message)
+
+        # Test API key on first use (only if using client)
+        if self.client and not self._api_key_tested:
             api_key_valid = await self._test_api_key()
             if not api_key_valid:
-                logger.warning("API key test failed - using fallback response")
-                return self._fallback_response(user_message)
+                logger.warning("API key test failed - trying HTTP fallback")
+                self._use_http_fallback = True
+                self.client = None
         
         try:
             # Create system prompt with medical context
@@ -243,18 +290,24 @@ RESPONSE STYLE:
             user_messages = self._create_user_message(user_message, conversation_history or [])
             messages.extend(user_messages)
             
-            # Call OpenAI API
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                presence_penalty=0.1,
-                frequency_penalty=0.1
-            )
-            
-            # Extract response
-            ai_response = response.choices[0].message.content
+            # Call OpenAI API (either client or HTTP fallback)
+            if self.client:
+                logger.info("Using OpenAI client for API call")
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    presence_penalty=0.1,
+                    frequency_penalty=0.1
+                )
+                ai_response = response.choices[0].message.content
+            else:
+                logger.info("Using HTTP fallback for OpenAI API call")
+                ai_response = await self._openai_http_request(messages, self.model)
+                if not ai_response:
+                    logger.error("HTTP fallback failed - using fallback response")
+                    return self._fallback_response(user_message)
             
             # Add medical disclaimer
             ai_response += self.medical_disclaimer
