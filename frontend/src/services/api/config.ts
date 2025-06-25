@@ -3,25 +3,38 @@
  * Centralized configuration for all API-related settings
  */
 
-// Environment-based configuration
+// Environment-based configuration with smart fallback
 const getApiBaseUrl = (): string => {
-  // Check environment variable first
+  // Check environment variable first (highest priority)
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  console.log('🔍 Config API URL from env:', envUrl);
+  console.log('🔍 Config checking environment API URL:', envUrl);
 
   if (envUrl) {
-    console.log('✅ Config using environment API URL:', envUrl);
+    const isRailway = envUrl.includes('railway.app');
+    const isLocal = envUrl.includes('localhost') || envUrl.includes('127.0.0.1');
+    const isNetwork = envUrl.includes('10.0.0') || envUrl.includes('192.168');
+
+    if (isRailway) {
+      console.log('🚀 Config using Railway backend:', envUrl);
+    } else if (isLocal) {
+      console.log('🔧 Config using local backend:', envUrl);
+    } else if (isNetwork) {
+      console.log('📱 Config using network backend:', envUrl);
+    } else {
+      console.log('✅ Config using custom backend:', envUrl);
+    }
+
     return envUrl;
   }
 
-  // Fallback to development/production logic
+  // Fallback logic when no environment variable is set
   const isDevelopment = __DEV__;
   if (isDevelopment) {
-    console.log('🔧 Config using development API URL: http://localhost:8000');
+    console.log('⚠️  No EXPO_PUBLIC_API_URL set, falling back to localhost');
     return 'http://localhost:8000'; // Local FastAPI development server
   }
 
-  console.log('🚀 Config using production API URL: Railway');
+  console.log('⚠️  No EXPO_PUBLIC_API_URL set, falling back to Railway production');
   return 'https://glucovision-production.up.railway.app'; // Production (Railway)
 };
 

@@ -39,29 +39,15 @@ interface UseAPIReturn {
   clearError: () => void;
 }
 
-// Get the correct API URL for React Native
-const getAPIBaseURL = () => {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  console.log('🔍 Environment API URL:', envUrl);
+// Import the centralized API configuration
+import { API_CONFIG } from '../services/api/config';
 
-  if (envUrl) {
-    console.log('✅ Using environment API URL:', envUrl);
-    return envUrl;
-  }
-
-  const isDevelopment = __DEV__;
-  if (isDevelopment) {
-    console.log('🔧 Using development API URL: http://localhost:8000');
-    return 'http://localhost:8000'; // Local FastAPI development server
-  }
-
-  console.log('🚀 Using production API URL: Railway');
-  return 'https://glucovision-production.up.railway.app'; // Production (Railway)
-};
+// Log the API configuration for debugging
+console.log('🔧 useAPI Hook - API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
 
 const DEFAULT_CONFIG: APIConfig = {
-  baseURL: getAPIBaseURL(),
-  timeout: 10000,
+  baseURL: API_CONFIG.BASE_URL, // Use centralized configuration
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   }
