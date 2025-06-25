@@ -81,36 +81,40 @@ class GlucoseLogCreate(BaseModel):
     
     @validator("reading_time")
     def validate_reading_time(cls, v):
-        """Validate reading time is not in the future - Very permissive validation"""
+        """Validate reading time is not in the future - Very permissive validation for local times"""
         from datetime import timezone
         import logging
 
         logger = logging.getLogger(__name__)
 
-        # Get current UTC time
+        # Get current time in multiple timezones for comparison
         now_utc = datetime.now(timezone.utc)
+        now_local = datetime.now()  # Server local time
 
-        # Convert input to UTC for comparison
-        if v.tzinfo is not None:
-            # If timezone-aware, convert to UTC
-            v_utc = v.astimezone(timezone.utc)
+        # For timezone-naive inputs (which should be user's local time)
+        if v.tzinfo is None:
+            # Treat as user's local time - be very permissive
+            # Only reject if it's clearly more than 2 days in the future
+            buffer_hours = 48
+
+            # Compare against server local time (more permissive)
+            future_threshold_local = now_local + timedelta(hours=buffer_hours)
+
+            logger.info(f"Time validation (local) - Input: {v}, Server local: {now_local}, Threshold: {future_threshold_local}")
+
+            if v > future_threshold_local:
+                raise ValueError(f"Reading time cannot be more than {buffer_hours} hours in the future")
         else:
-            # If timezone-naive, assume it's already in UTC (from frontend .toISOString())
-            v_utc = v.replace(tzinfo=timezone.utc)
+            # For timezone-aware inputs, convert to UTC
+            v_utc = v.astimezone(timezone.utc)
+            buffer_hours = 48
+            future_threshold = now_utc + timedelta(hours=buffer_hours)
 
-        # Very generous buffer (48 hours) to handle any timezone issues
-        # This essentially only blocks times that are clearly in the future
-        buffer_hours = 48
-        future_threshold = now_utc + timedelta(hours=buffer_hours)
+            logger.info(f"Time validation (UTC) - Input: {v}, UTC: {v_utc}, Now: {now_utc}, Threshold: {future_threshold}")
 
-        # Debug logging
-        logger.info(f"Time validation - Input: {v}, UTC: {v_utc}, Now: {now_utc}, Threshold: {future_threshold}")
+            if v_utc > future_threshold:
+                raise ValueError(f"Reading time cannot be more than {buffer_hours} hours in the future")
 
-        # Only reject times that are clearly way in the future
-        if v_utc > future_threshold:
-            raise ValueError(f"Reading time cannot be more than {buffer_hours} hours in the future. Input: {v}, UTC: {v_utc}, Now: {now_utc}")
-
-        # Return the original value (timezone conversion happens later)
         return v
     
     @validator("insulin_units")

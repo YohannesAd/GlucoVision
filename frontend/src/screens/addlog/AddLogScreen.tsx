@@ -96,16 +96,25 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         throw new Error('Reading time cannot be in the future');
       }
 
+      // Get timezone offset and create a proper timestamp
+      const timezoneOffset = combinedDateTime.getTimezoneOffset();
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Create a timestamp that preserves the local time intent
+      // Instead of converting to UTC, we'll send the local time with timezone info
+      const localTimeString = `${values.date}T${values.time}:00`;
+
       console.log('🕐 Glucose Log Timestamp Info:', {
         inputDate: values.date,
         inputTime: values.time,
+        localTimeString: localTimeString,
         combinedLocal: combinedDateTime.toString(),
         combinedISO: combinedDateTime.toISOString(),
         currentTime: now.toString(),
         currentISO: now.toISOString(),
-        timezoneOffset: combinedDateTime.getTimezoneOffset(),
-        timezoneOffsetHours: combinedDateTime.getTimezoneOffset() / 60,
-        userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezoneOffset: timezoneOffset,
+        timezoneOffsetHours: timezoneOffset / 60,
+        userTimezone: userTimezone
       });
 
       const logData = {
@@ -113,7 +122,7 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         unit: glucoseUnit,
         logType: values.logType,
         notes: values.notes?.trim() || undefined,
-        timestamp: combinedDateTime.toISOString(), // This includes timezone info
+        timestamp: localTimeString, // Send local time string instead of ISO
         userId: auth?.state?.user?.id || ''
       };
 
