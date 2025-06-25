@@ -4,7 +4,6 @@
   "framework": "react",
   "installCommand": "npm install",
   "devCommand": "npm run web",
-  "functions": {},
   "rewrites": [
     {
       "source": "/(.*)",

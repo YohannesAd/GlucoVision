@@ -1,12 +1,13 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "GlucoVision",
+    "slug": "glucovision",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "description": "Professional diabetes management app with AI-powered insights",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
