@@ -39,8 +39,16 @@ class OpenAIService:
         # Debug logging for OpenAI configuration
         logger.info(f"OpenAI Configuration Debug:")
         logger.info(f"  OPENAI_API_KEY: {'SET' if settings.OPENAI_API_KEY else 'NOT SET'}")
+        logger.info(f"  API Key length: {len(settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else 0}")
+        logger.info(f"  API Key prefix: {settings.OPENAI_API_KEY[:20] if settings.OPENAI_API_KEY else 'NONE'}...")
         logger.info(f"  ENABLE_OPENAI_CHAT: {settings.ENABLE_OPENAI_CHAT}")
         logger.info(f"  OPENAI_MODEL: {settings.OPENAI_MODEL}")
+
+        # Check if environment variables are being read
+        import os
+        logger.info(f"Environment check:")
+        logger.info(f"  OPENAI_API_KEY from env: {'SET' if os.getenv('OPENAI_API_KEY') else 'NOT SET'}")
+        logger.info(f"  ENABLE_OPENAI_CHAT from env: {os.getenv('ENABLE_OPENAI_CHAT', 'NOT SET')}")
 
         if not settings.OPENAI_API_KEY:
             logger.warning("OpenAI API key not configured. Chat will use fallback responses.")
