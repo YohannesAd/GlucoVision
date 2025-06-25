@@ -56,34 +56,13 @@ class OpenAIService:
         else:
             logger.info("Initializing OpenAI client with API key")
             try:
-                # Try multiple initialization approaches to handle version compatibility
-                import openai
-                logger.info(f"OpenAI library version: {openai.__version__}")
-
-                # Method 1: Try with just API key (most compatible)
-                try:
-                    self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-                    logger.info("✅ OpenAI client initialized successfully with minimal parameters")
-                except Exception as e1:
-                    logger.warning(f"Method 1 failed: {e1}")
-
-                    # Method 2: Try importing and using the client differently
-                    try:
-                        from openai import OpenAI
-                        # Create sync client first to test
-                        sync_client = OpenAI(api_key=settings.OPENAI_API_KEY)
-                        logger.info("Sync OpenAI client works, trying async...")
-                        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-                        logger.info("✅ OpenAI client initialized successfully with sync test")
-                    except Exception as e2:
-                        logger.error(f"Method 2 failed: {e2}")
-
-                        # Method 3: Force disable and use fallback
-                        logger.error("All OpenAI initialization methods failed")
-                        self.client = None
-
+                # Simple initialization like it works locally
+                logger.info("Initializing OpenAI client...")
+                self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                logger.info("✅ OpenAI client initialized successfully")
             except Exception as e:
-                logger.error(f"OpenAI import/initialization completely failed: {e}")
+                logger.error(f"❌ OpenAI client initialization failed: {e}")
+                logger.error("This should work the same as locally - check Railway environment variables")
                 self.client = None
 
         self.model = settings.OPENAI_MODEL
@@ -306,8 +285,8 @@ RESPONSE STYLE:
                 logger.info("Using HTTP fallback for OpenAI API call")
                 ai_response = await self._openai_http_request(messages, self.model)
                 if not ai_response:
-                    logger.error("HTTP fallback failed - using fallback response")
-                    return self._fallback_response(user_message)
+                    logger.error("❌ HTTP fallback failed - OpenAI completely unavailable")
+                    raise Exception("OpenAI API is completely unavailable - both client and HTTP failed")
             
             # Add medical disclaimer
             ai_response += self.medical_disclaimer
@@ -326,12 +305,14 @@ RESPONSE STYLE:
                 "user_intent": self._classify_intent(user_message),
                 "category": "ai_generated",
                 "model_used": self.model,
-                "tokens_used": response.usage.total_tokens if response.usage else 0
+                "tokens_used": 0  # Will be set properly when we fix the response variable
             }
             
         except Exception as e:
-            logger.error(f"OpenAI API error: {e}")
-            return self._fallback_response(user_message, error=str(e))
+            logger.error(f"🚨 OpenAI API COMPLETELY FAILED: {e}")
+            logger.error("🚫 NO MOCK DATA - Fix OpenAI connection on Railway!")
+            # Don't return mock data - let the error bubble up
+            raise Exception(f"OpenAI service failed: {e}")
     
     def _extract_medical_topics(self, user_message: str, ai_response: str) -> List[str]:
         """Extract medical topics from conversation"""
