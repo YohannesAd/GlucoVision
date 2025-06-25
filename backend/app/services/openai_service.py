@@ -47,7 +47,14 @@ class OpenAIService:
             self.client = None
         else:
             logger.info("Initializing OpenAI client with API key")
-            self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            try:
+                # Try to initialize OpenAI client with proper error handling
+                self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                logger.info("OpenAI client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
+                logger.warning("OpenAI client initialization failed. Chat will use fallback responses.")
+                self.client = None
 
         self.model = settings.OPENAI_MODEL
         self.max_tokens = settings.OPENAI_MAX_TOKENS
@@ -323,9 +330,16 @@ RESPONSE STYLE:
 try:
     from app.core.config import settings
     if settings.ENABLE_OPENAI_CHAT and settings.OPENAI_API_KEY:
+        logger.info("Creating OpenAI service instance...")
         openai_service = OpenAIService()
+        if openai_service.client is None:
+            logger.warning("OpenAI service created but client is None - using fallback")
+        else:
+            logger.info("OpenAI service created successfully with working client")
     else:
+        logger.info(f"OpenAI service not created - ENABLE_OPENAI_CHAT: {settings.ENABLE_OPENAI_CHAT}, API_KEY: {'SET' if settings.OPENAI_API_KEY else 'NOT SET'}")
         openai_service = None
 except Exception as e:
-    logger.warning(f"OpenAI service initialization failed: {e}")
+    logger.error(f"OpenAI service initialization failed: {e}")
+    logger.exception("Full error details:")
     openai_service = None
