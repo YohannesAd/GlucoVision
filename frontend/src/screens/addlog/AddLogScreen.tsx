@@ -103,7 +103,9 @@ export default function AddLogScreen({ navigation }: AddLogScreenProps) {
         combinedISO: combinedDateTime.toISOString(),
         currentTime: now.toString(),
         currentISO: now.toISOString(),
-        timezoneOffset: combinedDateTime.getTimezoneOffset()
+        timezoneOffset: combinedDateTime.getTimezoneOffset(),
+        timezoneOffsetHours: combinedDateTime.getTimezoneOffset() / 60,
+        userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
 
       const logData = {
