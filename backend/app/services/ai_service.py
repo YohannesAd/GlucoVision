@@ -23,6 +23,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 import logging
 import statistics
+import math
 
 from app.models.glucose_log import GlucoseLog
 from app.models.user import User
@@ -42,6 +43,31 @@ class GlucoseAIService:
     def __init__(self):
         self.scaler = StandardScaler()
         self.min_logs_for_analysis = 4
+
+    def _safe_float(self, value, default=0.0):
+        """Convert value to JSON-safe float, handling NaN and Infinity"""
+        try:
+            if value is None:
+                return default
+
+            # Convert to float
+            float_val = float(value)
+
+            # Check for NaN or Infinity
+            if math.isnan(float_val) or math.isinf(float_val):
+                return default
+
+            return float_val
+        except (ValueError, TypeError, OverflowError):
+            return default
+
+    def _safe_round(self, value, decimals=1, default=0.0):
+        """Safely round a value to specified decimals"""
+        safe_val = self._safe_float(value, default)
+        try:
+            return round(safe_val, decimals)
+        except (ValueError, TypeError, OverflowError):
+            return default
         
     async def analyze_glucose_patterns(self, user: User, logs: List[GlucoseLog]) -> Dict[str, Any]:
         """
@@ -283,12 +309,12 @@ class GlucoseAIService:
 
         return {
             "total_readings": len(df),
-            "average_glucose": round(float(avg_glucose), 1) if not np.isnan(avg_glucose) else 0.0,
-            "min_glucose": float(min_glucose) if not np.isnan(min_glucose) else 0.0,
-            "max_glucose": float(max_glucose) if not np.isnan(max_glucose) else 0.0,
-            "glucose_variability": round(float(std_glucose), 1) if not np.isnan(std_glucose) else 0.0,
-            "coefficient_variation": round(float(cv), 1) if not np.isnan(cv) else 0.0,
-            "time_in_range": round(float(time_in_range), 1),
+            "average_glucose": self._safe_round(avg_glucose, 1),
+            "min_glucose": self._safe_float(min_glucose),
+            "max_glucose": self._safe_float(max_glucose),
+            "glucose_variability": self._safe_round(std_glucose, 1),
+            "coefficient_variation": self._safe_round(cv, 1),
+            "time_in_range": self._safe_round(time_in_range, 1),
             "readings_in_range": int(in_range),
             "readings_below_range": int(below_range),
             "readings_above_range": int(above_range)
@@ -337,10 +363,10 @@ class GlucoseAIService:
         return {
             "trend": trend,
             "direction": direction,
-            "slope": round(float(slope), 3) if not np.isnan(slope) else 0.0,
-            "r_squared": round(float(r_squared), 3) if not np.isnan(r_squared) else 0.0,
-            "recent_change": round(float(recent_change), 1) if not np.isnan(recent_change) else 0.0,
-            "trend_strength": "strong" if r_squared > 0.7 else "moderate" if r_squared > 0.4 else "weak",
+            "slope": self._safe_round(slope, 3),
+            "r_squared": self._safe_round(r_squared, 3),
+            "recent_change": self._safe_round(recent_change, 1),
+            "trend_strength": "strong" if self._safe_float(r_squared) > 0.7 else "moderate" if self._safe_float(r_squared) > 0.4 else "weak",
             "predictions": predictions
         }
 
@@ -350,16 +376,16 @@ class GlucoseAIService:
 
         # Time-of-day patterns
         hourly_avg = df.groupby('hour')['glucose_value'].mean()
-        patterns['hourly_averages'] = {int(k): float(v) for k, v in hourly_avg.to_dict().items()}
+        patterns['hourly_averages'] = {int(k): self._safe_float(v) for k, v in hourly_avg.to_dict().items()}
         patterns['peak_hour'] = int(hourly_avg.idxmax())
         patterns['lowest_hour'] = int(hourly_avg.idxmin())
 
         # Day-of-week patterns
         daily_avg = df.groupby('day_of_week')['glucose_value'].mean()
-        patterns['daily_averages'] = {int(k): float(v) for k, v in daily_avg.to_dict().items()}
+        patterns['daily_averages'] = {int(k): self._safe_float(v) for k, v in daily_avg.to_dict().items()}
         patterns['weekend_vs_weekday'] = {
-            'weekend_avg': round(float(df[df['is_weekend']]['glucose_value'].mean()), 1),
-            'weekday_avg': round(float(df[~df['is_weekend']]['glucose_value'].mean()), 1)
+            'weekend_avg': self._safe_round(df[df['is_weekend']]['glucose_value'].mean(), 1),
+            'weekday_avg': self._safe_round(df[~df['is_weekend']]['glucose_value'].mean(), 1)
         }
 
         # Advanced Pattern Recognition with K-Means Clustering (using available data only)
@@ -391,10 +417,10 @@ class GlucoseAIService:
                 for cluster_id in range(n_clusters):
                     cluster_data = df_clustered[df_clustered['cluster'] == cluster_id]
                     cluster_analysis[f'pattern_{cluster_id}'] = {
-                        'avg_glucose': round(float(cluster_data['glucose_value'].mean()), 1),
+                        'avg_glucose': self._safe_round(cluster_data['glucose_value'].mean(), 1),
                         'common_time': int(cluster_data['hour'].mode().iloc[0]) if len(cluster_data) > 0 else 12,
                         'common_reading_type': cluster_data['reading_type'].mode().iloc[0] if len(cluster_data) > 0 else 'random',
-                        'weekend_frequency': round(float(cluster_data['is_weekend'].mean() * 100), 1),
+                        'weekend_frequency': self._safe_round(cluster_data['is_weekend'].mean() * 100, 1),
                         'pattern_frequency': len(cluster_data),
                         'description': self._describe_cluster_pattern_simple(cluster_data)
                     }
@@ -470,10 +496,10 @@ class GlucoseAIService:
             confidence = model.score(np.arange(len(df)).reshape(-1, 1), df['glucose_value'].values)
 
             return {
-                "next_reading_prediction": round(float(predictions[0]), 1),
-                "short_term_predictions": [round(float(p), 1) for p in predictions],
-                "confidence_score": round(float(confidence), 3),
-                "prediction_reliability": "high" if confidence > 0.7 else "moderate" if confidence > 0.4 else "low"
+                "next_reading_prediction": self._safe_round(predictions[0], 1),
+                "short_term_predictions": [self._safe_round(p, 1) for p in predictions],
+                "confidence_score": self._safe_round(confidence, 3),
+                "prediction_reliability": "high" if self._safe_float(confidence) > 0.7 else "moderate" if self._safe_float(confidence) > 0.4 else "low"
             }
         except Exception as e:
             logger.warning(f"Prediction generation failed: {e}")
@@ -502,11 +528,11 @@ class GlucoseAIService:
 
         return {
             "anomaly_count": len(anomalies),
-            "anomaly_percentage": round((len(anomalies) / len(df)) * 100, 1) if len(df) > 0 else 0.0,
+            "anomaly_percentage": self._safe_round((len(anomalies) / len(df)) * 100, 1) if len(df) > 0 else 0.0,
             "severe_highs": len(df[df['glucose_value'] > 300]),
             "severe_lows": len(df[df['glucose_value'] < 50]),
-            "anomaly_threshold_high": round(float(upper_threshold), 1) if not np.isnan(upper_threshold) else 0.0,
-            "anomaly_threshold_low": round(float(lower_threshold), 1) if not np.isnan(lower_threshold) else 0.0,
+            "anomaly_threshold_high": self._safe_round(upper_threshold, 1),
+            "anomaly_threshold_low": self._safe_round(lower_threshold, 1),
             "ml_anomaly_detection": ml_anomalies
         }
 
@@ -537,7 +563,7 @@ class GlucoseAIService:
             return {
                 "ml_anomaly_count": len(anomaly_indices),
                 "ml_anomaly_percentage": round((len(anomaly_indices) / len(df)) * 100, 1),
-                "anomalous_glucose_values": [round(float(val), 1) for val in anomalous_readings['glucose_value'].tolist()],
+                "anomalous_glucose_values": [self._safe_round(val, 1) for val in anomalous_readings['glucose_value'].tolist()],
                 "anomaly_detection_method": "Advanced Pattern Detection"
             }
 
@@ -635,8 +661,8 @@ class GlucoseAIService:
 
         return {
             "dawn_phenomenon_detected": bool(dawn_phenomenon),
-            "morning_average": round(float(morning_readings.mean()), 1) if len(morning_readings) > 0 else None,
-            "evening_average": round(float(night_readings.mean()), 1) if len(night_readings) > 0 else None
+            "morning_average": self._safe_round(morning_readings.mean(), 1) if len(morning_readings) > 0 else None,
+            "evening_average": self._safe_round(night_readings.mean(), 1) if len(night_readings) > 0 else None
         }
 
     def _analyze_meal_correlation(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -664,9 +690,9 @@ class GlucoseAIService:
         no_exercise_avg = df[df['exercise_duration'] == 0]['glucose_value'].mean()
 
         return {
-            "exercise_average": round(float(exercise_avg), 1),
-            "no_exercise_average": round(float(no_exercise_avg), 1),
-            "exercise_benefit": round(float(no_exercise_avg - exercise_avg), 1)
+            "exercise_average": self._safe_round(exercise_avg, 1),
+            "no_exercise_average": self._safe_round(no_exercise_avg, 1),
+            "exercise_benefit": self._safe_round(no_exercise_avg - exercise_avg, 1)
         }
 
     def _analyze_medication_impact(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -680,9 +706,9 @@ class GlucoseAIService:
         no_med_avg = df[df['medication_taken'] == False]['glucose_value'].mean()
 
         return {
-            "with_medication_average": round(float(med_avg), 1),
-            "without_medication_average": round(float(no_med_avg), 1),
-            "medication_effectiveness": round(float(no_med_avg - med_avg), 1)
+            "with_medication_average": self._safe_round(med_avg, 1),
+            "without_medication_average": self._safe_round(no_med_avg, 1),
+            "medication_effectiveness": self._safe_round(no_med_avg - med_avg, 1)
         }
 
     def _insufficient_data_response(self) -> Dict[str, Any]:
