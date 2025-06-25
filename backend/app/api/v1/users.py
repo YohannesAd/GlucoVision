@@ -15,7 +15,7 @@ Features:
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from app.core.database import get_async_session
@@ -94,7 +94,7 @@ async def update_user_profile(
     try:
         # Prepare update data (only non-None values)
         update_data = {
-            key: value for key, value in profile_data.dict().items() 
+            key: value for key, value in profile_data.model_dump().items()
             if value is not None
         }
         
@@ -319,7 +319,7 @@ async def complete_onboarding_step3(
                 unit=step3_data.preferred_unit,
                 reading_type=ReadingTypeEnum(reading.reading_type),
                 reading_time=reading.reading_time,
-                logged_time=datetime.utcnow(),
+                logged_time=datetime.now(timezone.utc),
                 is_validated=True
             )
         
@@ -397,7 +397,7 @@ async def fix_user_onboarding(
                     unit='mg/dL',
                     reading_type=ReadingTypeEnum.FASTING,
                     reading_time=datetime(2024, 6, 14, 8, 0),
-                    logged_time=datetime.utcnow(),
+                    logged_time=datetime.now(timezone.utc),
                     is_validated=True
                 ),
                 GlucoseLog(
@@ -406,7 +406,7 @@ async def fix_user_onboarding(
                     unit='mg/dL',
                     reading_type=ReadingTypeEnum.AFTER_MEAL,
                     reading_time=datetime(2024, 6, 14, 14, 0),
-                    logged_time=datetime.utcnow(),
+                    logged_time=datetime.now(timezone.utc),
                     is_validated=True
                 ),
                 GlucoseLog(
@@ -415,7 +415,7 @@ async def fix_user_onboarding(
                     unit='mg/dL',
                     reading_type=ReadingTypeEnum.BEFORE_MEAL,
                     reading_time=datetime(2024, 6, 14, 18, 0),
-                    logged_time=datetime.utcnow(),
+                    logged_time=datetime.now(timezone.utc),
                     is_validated=True
                 ),
                 GlucoseLog(
@@ -424,7 +424,7 @@ async def fix_user_onboarding(
                     unit='mg/dL',
                     reading_type=ReadingTypeEnum.BEDTIME,
                     reading_time=datetime(2024, 6, 14, 22, 0),
-                    logged_time=datetime.utcnow(),
+                    logged_time=datetime.now(timezone.utc),
                     is_validated=True
                 )
             ]

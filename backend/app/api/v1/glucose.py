@@ -16,7 +16,7 @@ Features:
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 import logging
 
@@ -72,7 +72,7 @@ async def create_glucose_log(
             reading_type=log_data.reading_type,
             meal_type=log_data.meal_type,
             reading_time=log_data.reading_time,
-            logged_time=datetime.utcnow(),
+            logged_time=datetime.now(timezone.utc),
             notes=log_data.notes,
             symptoms=log_data.symptoms,
             carbs_consumed=log_data.carbs_consumed,
@@ -270,7 +270,7 @@ async def update_glucose_log(
         
         # Prepare update data (only non-None values)
         update_dict = {
-            key: value for key, value in update_data.dict().items() 
+            key: value for key, value in update_data.model_dump().items()
             if value is not None
         }
         
@@ -376,7 +376,7 @@ async def get_glucose_statistics(
     """
     try:
         # Get recent logs for analysis
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
         logs = await GlucoseLog.get_user_logs(
             db,
             user_id=current_user.id,
