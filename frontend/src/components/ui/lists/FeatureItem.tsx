@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 
 /**
  * FeatureItem - Reusable component for displaying features with icons
@@ -27,17 +27,71 @@ export default function FeatureItem({
   iconContainerClassName = 'w-10 h-10 rounded-full items-center justify-center mr-4',
   textClassName = 'flex-1 text-gray-800 font-medium text-base',
 }: FeatureItemProps) {
+  // Get background color based on prop
+  const getIconBackgroundColor = () => {
+    switch (iconBackgroundColor) {
+      case 'bg-primary':
+        return '#3B82F6';
+      case 'bg-secondary':
+        return '#10B981';
+      case 'bg-accent':
+        return '#F59E0B';
+      default:
+        return '#3B82F6';
+    }
+  };
+
   return (
-    <View className={containerClassName}>
+    <View className={containerClassName} style={[styles.container]}>
       {/* Feature Icon */}
-      <View className={`${iconContainerClassName} ${iconBackgroundColor}`}>
-        <Text className="text-white font-bold text-sm">{icon}</Text>
+      <View
+        className={`${iconContainerClassName} ${iconBackgroundColor}`}
+        style={[
+          styles.iconContainer,
+          { backgroundColor: getIconBackgroundColor() }
+        ]}
+      >
+        <Text className="text-white font-bold text-sm" style={[styles.iconText]}>
+          {icon}
+        </Text>
       </View>
 
       {/* Feature Text */}
-      <Text className={textClassName}>
+      <Text className={textClassName} style={[styles.featureText]}>
         {text}
       </Text>
     </View>
   );
 }
+
+// Fallback styles for web compatibility
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  iconText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  featureText: {
+    flex: 1,
+    color: '#1F2937',
+    fontWeight: '500',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+});
