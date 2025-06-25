@@ -65,16 +65,16 @@ export default function MLInsightsCard({
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Glucose Behavior Patterns */}
-        {mlData.clusters.length > 0 && (
+        {mlData?.clusters?.length > 0 && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
                Glucose Behavior Patterns
             </Text>
             <Text className="text-sm text-textSecondary mb-3">
-              We identified {mlData.clusters.length} distinct patterns in your glucose behavior:
+              We identified {mlData?.clusters?.length || 0} distinct patterns in your glucose behavior:
             </Text>
-            
-            {mlData.clusters.map((cluster, index) => (
+
+            {mlData?.clusters?.map((cluster, index) => (
               <View key={cluster.id} className="bg-softBlue rounded-lg p-4 mb-3">
                 <Text className="font-semibold text-darkBlue mb-1">
                   Pattern {index + 1}: {cluster.name}
@@ -106,14 +106,14 @@ export default function MLInsightsCard({
             
             <View className="bg-blue-50 rounded-lg p-3">
               <Text className="text-sm font-medium text-blue-800">
-                 Dominant Pattern: {mlData.dominantPattern}
+                 Dominant Pattern: {mlData?.dominantPattern || 'Analysis in progress'}
               </Text>
             </View>
           </View>
         )}
 
         {/* Glucose Predictions */}
-        {mlData.predictions && (
+        {mlData?.predictions && (
           <View className="mb-6">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
               Glucose Forecasting
@@ -124,11 +124,11 @@ export default function MLInsightsCard({
                 Predicted Next Reading
               </Text>
               <Text className="text-2xl font-bold text-purple-600 mb-2">
-                {mlData.predictions.nextReading} mg/dL
+                {mlData?.predictions?.nextReading || '--'} mg/dL
               </Text>
               <View className="flex-row items-center">
                 <Text className="text-sm text-purple-600">
-                  Confidence: {Math.round(mlData.predictions.confidence * 100)}%
+                  Confidence: {Math.round((mlData?.predictions?.confidence || 0) * 100)}%
                 </Text>
                 <View className={`ml-2 px-2 py-1 rounded ${
                   mlData.predictions.reliability === 'high' ? 'bg-green-100' :
@@ -177,32 +177,32 @@ export default function MLInsightsCard({
             <View className="flex-row justify-between">
               <View>
                 <Text className="text-sm text-red-600">
-                  Unusual Readings: {mlData.anomalies.statistical.count}
+                  Unusual Readings: {mlData?.anomalies?.statistical?.count || 0}
                 </Text>
                 <Text className="text-xs text-red-500">
-                  {mlData.anomalies.statistical.percentage}% of total readings
+                  {mlData?.anomalies?.statistical?.percentage || 0}% of total readings
                 </Text>
               </View>
               <View>
                 <Text className="text-sm text-red-600">
-                  Critical Events: {mlData.anomalies.statistical.severeHighs + mlData.anomalies.statistical.severeLows}
+                  Critical Events: {(mlData?.anomalies?.statistical?.severeHighs || 0) + (mlData?.anomalies?.statistical?.severeLows || 0)}
                 </Text>
                 <Text className="text-xs text-red-500">
-                  {mlData.anomalies.statistical.severeHighs} very high, {mlData.anomalies.statistical.severeLows} very low
+                  {mlData?.anomalies?.statistical?.severeHighs || 0} very high, {mlData?.anomalies?.statistical?.severeLows || 0} very low
                 </Text>
               </View>
             </View>
           </View>
 
-          {mlData.anomalies.ml && (
+          {mlData?.anomalies?.ml && (
             <View className="bg-orange-50 rounded-lg p-4">
               <Text className="font-semibold text-orange-800 mb-2">
                  Advanced Pattern Detection
               </Text>
               <Text className="text-sm text-orange-600 mb-2">
-                Advanced analysis found {mlData.anomalies.ml.count} unusual patterns ({mlData.anomalies.ml.percentage}%)
+                Advanced analysis found {mlData?.anomalies?.ml?.count || 0} unusual patterns ({mlData?.anomalies?.ml?.percentage || 0}%)
               </Text>
-              {mlData.anomalies.ml.values.length > 0 && (
+              {mlData?.anomalies?.ml?.values?.length > 0 && (
                 <View>
                   <Text className="text-xs text-orange-500 mb-1">Unusual glucose values:</Text>
                   <Text className="text-sm text-orange-600">
@@ -226,9 +226,9 @@ export default function MLInsightsCard({
             <View className="bg-gray-50 rounded-lg p-4">
               <View className="flex-row justify-between items-center">
                 <Text className="font-medium text-darkBlue">Glucose Stability</Text>
-                <View className={`px-3 py-1 rounded-full ${getVariabilityColor(advancedAnalytics.variabilityScore)}`}>
+                <View className={`px-3 py-1 rounded-full ${getVariabilityColor(advancedAnalytics?.variabilityScore || 0)}`}>
                   <Text className="text-sm font-semibold">
-                    {advancedAnalytics.variabilityScore}/100
+                    {advancedAnalytics?.variabilityScore || 0}/100
                   </Text>
                 </View>
               </View>
@@ -241,9 +241,9 @@ export default function MLInsightsCard({
             <View className="bg-gray-50 rounded-lg p-4">
               <View className="flex-row justify-between items-center">
                 <Text className="font-medium text-darkBlue">Risk Assessment</Text>
-                <View className={`px-3 py-1 rounded-full ${getRiskColor(advancedAnalytics.riskLevel)}`}>
+                <View className={`px-3 py-1 rounded-full ${getRiskColor(advancedAnalytics?.riskLevel || 'low')}`}>
                   <Text className="text-sm font-semibold capitalize">
-                    {advancedAnalytics.riskLevel}
+                    {advancedAnalytics?.riskLevel || 'low'}
                   </Text>
                 </View>
               </View>
@@ -257,7 +257,7 @@ export default function MLInsightsCard({
               <View className="flex-row justify-between items-center">
                 <Text className="font-medium text-darkBlue">Exercise Impact</Text>
                 <Text className="text-sm text-textSecondary">
-                  {advancedAnalytics.exerciseImpact}
+                  {advancedAnalytics?.exerciseImpact || 'Not enough data'}
                 </Text>
               </View>
               <Text className="text-xs text-textSecondary mt-1">
@@ -270,7 +270,7 @@ export default function MLInsightsCard({
               <View className="flex-row justify-between items-center">
                 <Text className="font-medium text-darkBlue">Medication Effect</Text>
                 <Text className="text-sm text-textSecondary">
-                  {advancedAnalytics.medicationEffectiveness}
+                  {advancedAnalytics?.medicationEffectiveness || 'Not enough data'}
                 </Text>
               </View>
               <Text className="text-xs text-textSecondary mt-1">
@@ -281,7 +281,7 @@ export default function MLInsightsCard({
         </View>
 
         {/* Time Patterns */}
-        {advancedAnalytics.timePatterns && (
+        {advancedAnalytics?.timePatterns && (
           <View className="mb-4">
             <Text className="text-lg font-semibold text-darkBlue mb-3">
                Daily Glucose Patterns
@@ -291,16 +291,16 @@ export default function MLInsightsCard({
               <View className="flex-row justify-between mb-2">
                 <Text className="text-sm text-blue-700">Highest Glucose Time:</Text>
                 <Text className="text-sm font-semibold text-blue-800">
-                  {formatTime12Hour(advancedAnalytics.timePatterns.peakHour)}
+                  {formatTime12Hour(advancedAnalytics?.timePatterns?.peakHour || 12)}
                 </Text>
               </View>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-sm text-blue-700">Lowest Glucose Time:</Text>
                 <Text className="text-sm font-semibold text-blue-800">
-                  {formatTime12Hour(advancedAnalytics.timePatterns.lowestHour)}
+                  {formatTime12Hour(advancedAnalytics?.timePatterns?.lowestHour || 6)}
                 </Text>
               </View>
-              {advancedAnalytics.timePatterns.dawnPhenomenon && (
+              {advancedAnalytics?.timePatterns?.dawnPhenomenon && (
                 <View className="bg-yellow-100 rounded p-2 mt-2">
                   <Text className="text-xs text-yellow-800">
                      Dawn phenomenon detected - morning glucose rise

@@ -74,7 +74,7 @@ export default function AITrendsScreen({ navigation }: AITrendsScreenProps) {
 
       // Minimal debug logging
       console.log('AI data fetched successfully. Logs:', glucose.state.logs?.length || 0);
-      console.log('ML patterns:', mlPatterns.clusters.length, 'clusters found');
+      console.log('ML patterns:', mlPatterns?.clusters?.length || 0, 'clusters found');
 
       return {
         insights: insightsResult.data,
