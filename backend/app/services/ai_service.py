@@ -274,16 +274,20 @@ class GlucoseAIService:
 
         time_in_range = (in_range / len(glucose_values)) * 100
 
-        # Variability metrics
-        cv = (std_glucose / avg_glucose) * 100 if avg_glucose > 0 else 0
+        # Variability metrics with NaN/Infinity protection
+        cv = 0
+        if avg_glucose > 0 and not np.isnan(std_glucose) and not np.isnan(avg_glucose):
+            cv = (std_glucose / avg_glucose) * 100
+            if np.isnan(cv) or np.isinf(cv):
+                cv = 0
 
         return {
             "total_readings": len(df),
-            "average_glucose": round(float(avg_glucose), 1),
-            "min_glucose": float(min_glucose),
-            "max_glucose": float(max_glucose),
-            "glucose_variability": round(float(std_glucose), 1),
-            "coefficient_variation": round(float(cv), 1),
+            "average_glucose": round(float(avg_glucose), 1) if not np.isnan(avg_glucose) else 0.0,
+            "min_glucose": float(min_glucose) if not np.isnan(min_glucose) else 0.0,
+            "max_glucose": float(max_glucose) if not np.isnan(max_glucose) else 0.0,
+            "glucose_variability": round(float(std_glucose), 1) if not np.isnan(std_glucose) else 0.0,
+            "coefficient_variation": round(float(cv), 1) if not np.isnan(cv) else 0.0,
             "time_in_range": round(float(time_in_range), 1),
             "readings_in_range": int(in_range),
             "readings_below_range": int(below_range),
@@ -333,9 +337,9 @@ class GlucoseAIService:
         return {
             "trend": trend,
             "direction": direction,
-            "slope": round(float(slope), 3),
-            "r_squared": round(float(r_squared), 3),
-            "recent_change": round(float(recent_change), 1),
+            "slope": round(float(slope), 3) if not np.isnan(slope) else 0.0,
+            "r_squared": round(float(r_squared), 3) if not np.isnan(r_squared) else 0.0,
+            "recent_change": round(float(recent_change), 1) if not np.isnan(recent_change) else 0.0,
             "trend_strength": "strong" if r_squared > 0.7 else "moderate" if r_squared > 0.4 else "weak",
             "predictions": predictions
         }
@@ -498,11 +502,11 @@ class GlucoseAIService:
 
         return {
             "anomaly_count": len(anomalies),
-            "anomaly_percentage": round((len(anomalies) / len(df)) * 100, 1),
+            "anomaly_percentage": round((len(anomalies) / len(df)) * 100, 1) if len(df) > 0 else 0.0,
             "severe_highs": len(df[df['glucose_value'] > 300]),
             "severe_lows": len(df[df['glucose_value'] < 50]),
-            "anomaly_threshold_high": round(float(upper_threshold), 1),
-            "anomaly_threshold_low": round(float(lower_threshold), 1),
+            "anomaly_threshold_high": round(float(upper_threshold), 1) if not np.isnan(upper_threshold) else 0.0,
+            "anomaly_threshold_low": round(float(lower_threshold), 1) if not np.isnan(lower_threshold) else 0.0,
             "ml_anomaly_detection": ml_anomalies
         }
 
@@ -547,8 +551,13 @@ class GlucoseAIService:
         avg_glucose = df['glucose_value'].mean()
         glucose_std = df['glucose_value'].std()
 
-        # High variability recommendation
-        cv = (glucose_std / avg_glucose) * 100 if avg_glucose > 0 else 0
+        # High variability recommendation with NaN protection
+        cv = 0
+        if avg_glucose > 0 and not np.isnan(glucose_std) and not np.isnan(avg_glucose):
+            cv = (glucose_std / avg_glucose) * 100
+            if np.isnan(cv) or np.isinf(cv):
+                cv = 0
+
         if cv > 30:
             recommendations.append({
                 "type": "glucose_control",
