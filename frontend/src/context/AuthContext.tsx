@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignUpCredentials } from '../types';
+import { authService } from '../services/auth/authService';
 
 type AuthAction =
   | { type: 'AUTH_START' }
@@ -67,7 +68,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       // Use real API service to login
-      const { authService } = await import('../services/auth/authService');
       const response = await authService.login(credentials);
 
       // AuthService already converts FastAPI response to frontend User format
@@ -79,7 +79,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error: any) {
       // Clear any stored tokens on login failure to prevent refresh attempts
       try {
-        const { authService } = await import('../services/auth/authService');
         await authService.clearAuthData();
       } catch (clearError) {
         console.warn('Failed to clear auth data:', clearError);
@@ -96,7 +95,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       // Use real API service to register
-      const { authService } = await import('../services/auth/authService');
       const registerData = {
         email: credentials.email,
         password: credentials.password,
@@ -125,7 +123,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     try {
       // Use real API service to logout
-      const { authService } = await import('../services/auth/authService');
       await authService.logout();
 
       dispatch({ type: 'LOGOUT' });

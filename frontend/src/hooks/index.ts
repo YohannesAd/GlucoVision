@@ -1,7 +1,6 @@
 /**
-
  * This file provides a single import source for all custom hooks,
-n)
+ * making imports cleaner and more maintainable.
  */
 
 
