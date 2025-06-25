@@ -312,14 +312,18 @@ async def complete_onboarding_step3(
         
         # Create glucose log entries
         for reading in step3_data.glucose_readings:
+            # Convert timezone-aware datetime to naive UTC for database storage
+            reading_time_naive = reading.reading_time.replace(tzinfo=None) if reading.reading_time.tzinfo else reading.reading_time
+            logged_time_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+
             await GlucoseLog.create(
                 db,
                 user_id=current_user.id,
                 glucose_value=reading.glucose_value,
                 unit=step3_data.preferred_unit,
                 reading_type=ReadingTypeEnum(reading.reading_type),
-                reading_time=reading.reading_time,
-                logged_time=datetime.now(timezone.utc),
+                reading_time=reading_time_naive,
+                logged_time=logged_time_naive,
                 is_validated=True
             )
         

@@ -63,6 +63,10 @@ async def create_glucose_log(
     - Validation confirmation
     """
     try:
+        # Convert timezone-aware datetime to naive UTC for database storage
+        reading_time_naive = log_data.reading_time.replace(tzinfo=None) if log_data.reading_time.tzinfo else log_data.reading_time
+        logged_time_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+
         # Create glucose log entry
         glucose_log = await GlucoseLog.create(
             db,
@@ -71,8 +75,8 @@ async def create_glucose_log(
             unit=log_data.unit,
             reading_type=log_data.reading_type,
             meal_type=log_data.meal_type,
-            reading_time=log_data.reading_time,
-            logged_time=datetime.now(timezone.utc),
+            reading_time=reading_time_naive,
+            logged_time=logged_time_naive,
             notes=log_data.notes,
             symptoms=log_data.symptoms,
             carbs_consumed=log_data.carbs_consumed,
