@@ -1,7 +1,9 @@
 {
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
+  "framework": "react",
   "installCommand": "npm install",
+  "devCommand": "npm run web",
   "rewrites": [
     {
       "source": "/(.*)",
