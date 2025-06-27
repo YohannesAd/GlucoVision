@@ -27,10 +27,30 @@ export default function FeatureItem({
   iconContainerClassName = 'w-10 h-10 rounded-full items-center justify-center mr-4',
   textClassName = 'flex-1 text-gray-800 font-medium text-base',
 }: FeatureItemProps) {
+  // Get background color based on prop
+  const getIconBackgroundColor = () => {
+    switch (iconBackgroundColor) {
+      case 'bg-primary':
+        return '#3B82F6';
+      case 'bg-secondary':
+        return '#10B981';
+      case 'bg-accent':
+        return '#F59E0B';
+      default:
+        return '#3B82F6';
+    }
+  };
+
   return (
     <View className={containerClassName} style={[styles.container]}>
       {/* Feature Icon */}
-      <View className={`${iconContainerClassName} ${iconBackgroundColor}`} style={[styles.iconContainer]}>
+      <View
+        className={`${iconContainerClassName} ${iconBackgroundColor}`}
+        style={[
+          styles.iconContainer,
+          { backgroundColor: getIconBackgroundColor() }
+        ]}
+      >
         <Text className="text-white font-bold text-sm" style={[styles.iconText]}>
           {icon}
         </Text>

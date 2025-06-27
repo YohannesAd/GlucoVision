@@ -22,45 +22,50 @@ export default function LandingScreen({ navigation }: LandingScreenProps) {
 
   return (
     <ScreenContainer
-      backgroundColor="#EBF4FF"
+      backgroundColor="bg-softBlue"
       statusBarBackgroundColor="#EBF4FF"
     >
       <ScrollView
-        style={[styles.container]}
-        contentContainerStyle={[styles.contentContainer]}
+        className="flex-1 bg-softBlue"
+        style={[styles.container, Platform.OS === 'web' && styles.webContainer]}
+        contentContainerStyle={[
+          { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 32 },
+          Platform.OS === 'web' && styles.webContentContainer
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* App Branding Section */}
-        <View style={[styles.brandingSection]}>
+        <View className="items-center mb-8 pt-5" style={[styles.brandingSection]}>
           {/* App Logo */}
-          <View style={[styles.logoContainer]}>
+          <View className="bg-white rounded-full p-6 shadow-lg mb-4" style={[styles.logoContainer]}>
             <Image
               source={require('../../../assets/logo.png')}
+              className="w-16 h-16"
               style={[styles.logo]}
               resizeMode="contain"
             />
           </View>
 
           {/* App Name */}
-          <Text style={[styles.appName]}>
+          <Text className="text-3xl font-bold text-darkBlue mb-2" style={[styles.appName]}>
             GlucoVision
           </Text>
 
           {/* App Tagline */}
-          <Text style={[styles.tagline]}>
+          <Text className="text-base text-textSecondary font-medium text-center" style={[styles.tagline]}>
             Track smarter. Live healthier.
           </Text>
         </View>
 
         {/* Content Section */}
-        <View style={[styles.contentSection]}>
+        <View className="flex-1 justify-center py-5" style={[styles.contentSection]}>
           {/* App Description */}
-          <Text style={[styles.description]}>
+          <Text className="text-center text-textPrimary text-sm leading-relaxed mb-6 px-4" style={[styles.description]}>
             Take control of your diabetes with AI-powered insights and personalized tracking.
           </Text>
 
           {/* Key Features List */}
-          <View style={[styles.featuresContainer]}>
+          <View className="w-full" style={[styles.featuresContainer]}>
             <FeatureItem
               icon="📊"
               text="Smart glucose tracking with AI chat box assistance"
@@ -82,7 +87,7 @@ export default function LandingScreen({ navigation }: LandingScreenProps) {
         </View>
 
         {/* Call to Action Section */}
-        <View style={[styles.ctaSection]}>
+        <View className="w-full mt-8 pb-5" style={[styles.ctaSection]}>
           <Button
             title="Get Started"
             onPress={handleGetStarted}
@@ -99,19 +104,16 @@ export default function LandingScreen({ navigation }: LandingScreenProps) {
 // Add displayName for debugging
 LandingScreen.displayName = 'LandingScreen';
 
-// Styles for web compatibility
+// Fallback styles for web compatibility
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  webContainer: {
     backgroundColor: '#EBF4FF',
   },
-  contentContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    ...(Platform.OS === 'web' && {
-      minHeight: '100vh',
-    }),
+  webContentContainer: {
+    minHeight: '100vh',
   },
   brandingSection: {
     alignItems: 'center',
