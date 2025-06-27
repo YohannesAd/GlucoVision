@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 /**
  * FeatureItem - Reusable component for displaying features with icons
@@ -23,21 +23,63 @@ export default function FeatureItem({
   icon,
   text,
   iconBackgroundColor = 'bg-primary',
-  containerClassName = 'flex-row items-center bg-white/50 rounded-xl p-4 mb-3',
-  iconContainerClassName = 'w-10 h-10 rounded-full items-center justify-center mr-4',
-  textClassName = 'flex-1 text-gray-800 font-medium text-base',
 }: FeatureItemProps) {
+  // Get background color based on prop
+  const getIconBackgroundColor = () => {
+    switch (iconBackgroundColor) {
+      case 'bg-primary':
+        return '#007AFF';
+      case 'bg-secondary':
+        return '#34C759';
+      case 'bg-accent':
+        return '#FF9500';
+      default:
+        return '#007AFF';
+    }
+  };
+
   return (
-    <View className={containerClassName}>
+    <View style={styles.container}>
       {/* Feature Icon */}
-      <View className={`${iconContainerClassName} ${iconBackgroundColor}`}>
-        <Text className="text-white font-bold text-sm">{icon}</Text>
+      <View style={[styles.iconContainer, { backgroundColor: getIconBackgroundColor() }]}>
+        <Text style={styles.iconText}>{icon}</Text>
       </View>
 
       {/* Feature Text */}
-      <Text className={textClassName}>
+      <Text style={styles.featureText}>
         {text}
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  iconText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  featureText: {
+    flex: 1,
+    color: '#1F2937',
+    fontWeight: '500',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+});
