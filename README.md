@@ -51,7 +51,7 @@ Built with a strong focus on usability, AI integration, and medical-grade report
 
 ---
 
-## 📅 App Structure
+##  App Structure
 
 ### Frontend (React Native)
 
@@ -71,7 +71,7 @@ Auth → Glucose Logs → AI Chat → Reports → Analytics
 
 ---
 
-## 🌐 API (Production)
+##  API (Production)
 
 - **Base URL**: `https://glucovision-production.up.railway.app`
 - **Docs**: `/docs`
@@ -86,7 +86,7 @@ Auth → Glucose Logs → AI Chat → Reports → Analytics
 
 ---
 
-## 🚀 Setup Guide
+##  Setup Guide
 
 ### Backend
 
@@ -117,23 +117,5 @@ npm start
 
 ---
 
-## 🌟 Highlights
-
-- Clean, modular component structure
-- Fully typed with TypeScript (frontend + backend)
-- AI integration with OpenAI for personalized health insights
-- Mobile-first, secure, and production-ready
 
 ---
-
-## 🚧 Project Status
-
-- 📅 Core Features: ✅ Done
-- 🔍 AI Assistant: ✅ Integrated
-- 📈 Analytics & Reports: ✅ Live
-- 📲 Mobile UI: ✅ Polished
-- ♻️ Final Refinement: ⏳ In Progress
-
----
-
-Built with ❤️ for better diabetic health support and as a demonstration of professional-grade mobile, backend, and AI engineering.
