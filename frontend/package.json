@@ -35,7 +35,8 @@
     "react-native-svg": "15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "zod": "^3.25.49",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "expo-updates": "~0.28.15"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",
