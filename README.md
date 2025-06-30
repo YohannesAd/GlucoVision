@@ -39,7 +39,8 @@ Built with a strong focus on usability, AI integration, and medical-grade report
 | ---------- | ------------------------------------ |
 | Frontend   | React Native, TypeScript, NativeWind |
 | Backend    | FastAPI, Python 3.11+                |
-| Database   | PostgreSQL (Prod), SQLite (Dev)      |
+| Database   | PostgreSQL (Prod), SQLite (Dev) 
+| ML         | scikit-learn, pandas,NumPy           |
 | Auth       | JWT, bcrypt                          |
 | AI         | OpenAI GPT-4 API                     |
 | Styling    | Tailwind (via NativeWind)            |
@@ -49,7 +50,7 @@ Built with a strong focus on usability, AI integration, and medical-grade report
 
 ## Features
 
-### AI-Powered Intelligence
+### AI-Powered Intelligence/ ML Insights
 
 - **Chat Assistant**: Real-time GPT-powered diabetes Q\&A
 - **Smart Recommendations**: Based on glucose trends
@@ -61,10 +62,10 @@ Built with a strong focus on usability, AI integration, and medical-grade report
 - View trends via interactive dashboards
 - Export data in PDF or JSON
 
-### Reporting & Email
+### Reporting 
 
 - Medical-grade PDF generation
-- Email verification and password recovery
+
 
 ---
 
