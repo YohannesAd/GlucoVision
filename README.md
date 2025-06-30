@@ -112,6 +112,11 @@ cp .env.example .env  # then edit email & DB config
 pip install -r requirements.txt
 python run.py --host 0.0.0.0 --port 8000
 ```
+### Backend (No Setup Needed )
+
+The backend is already live and deployed at:https://glucovision-production.up.railway.app
+
+You do **not** need to run it locally
 
 ### Frontend
 
