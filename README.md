@@ -6,11 +6,11 @@ An AI-powered mobile app that helps diabetic patients track, understand, and man
 
 ## Overview
 
-GlucoVision empowers diabetic users by:
+GlucoVision helps diabetic users by:
 
-- Logging blood glucose levels
+- tracking blood glucose levels
 - Visualizing health trends
-- Receiving AI-based predictions and insights
+- Receiving AI-based predictions and insights and with live agent that can assit you anytime.
 
 Built with a strong focus on usability, AI integration, and medical-grade reporting.
 
