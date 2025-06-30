@@ -3,6 +3,7 @@
 An AI-powered mobile app that helps diabetic patients track, understand, and manage their blood sugar levels. Inspired by a personal family journey and built with modern, professional full-stack technologies.
 
 ---
+Click this link to get a brief explanation to access the app  https://yohannesad.github.io/glucovision-installation/
 <p align="center"> 
    <img src="https://github.com/user-attachments/assets/453de58e-aa0b-4be5-a40f-f3c77d64ffb6" width="150" />
    <img src= "https://github.com/user-attachments/assets/c1dbdcf3-3766-4e99-bdbe-a31ca90474f9" width="150">
