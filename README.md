@@ -3,7 +3,21 @@
 An AI-powered mobile app that helps diabetic patients track, understand, and manage their blood sugar levels. Inspired by a personal family journey and built with modern, professional full-stack technologies.
 
 ---
-![image](https://github.com/user-attachments/assets/d60d7847-9f6b-4e77-9c04-5721358c3246) ![image](https://github.com/user-attachments/assets/453de58e-aa0b-4be5-a40f-f3c77d64ffb6)
+<p align="center"> 
+   <img src="https://github.com/user-attachments/assets/453de58e-aa0b-4be5-a40f-f3c77d64ffb6" width="150" />
+   <img src= "https://github.com/user-attachments/assets/c1dbdcf3-3766-4e99-bdbe-a31ca90474f9" width="150">
+    <img src="https://github.com/user-attachments/assets/de3397d2-605a-4104-8a41-f1330a9425e2" width="150" />
+   <img src="https://github.com/user-attachments/assets/d60d7847-9f6b-4e77-9c04-5721358c3246" width="150" /> 
+   <img src= "https://github.com/user-attachments/assets/de88028a-d884-4042-8768-16c505a271f1" width="150">
+   <img src = "https://github.com/user-attachments/assets/a3e1a84e-b797-40aa-a8ad-de95fc3b6d93" width="150">
+   <img src = "https://github.com/user-attachments/assets/18f20bf2-9929-4844-b0f7-723c23d090ee" width=150"
+
+
+</p>
+
+
+
+
 
 
 ## Overview
