@@ -3,14 +3,30 @@
 An AI-powered mobile app that helps diabetic patients track, understand, and manage their blood sugar levels. Inspired by a personal family journey and built with modern, professional full-stack technologies.
 
 ---
+<p align="center"> 
+   <img src="https://github.com/user-attachments/assets/453de58e-aa0b-4be5-a40f-f3c77d64ffb6" width="150" />
+   <img src= "https://github.com/user-attachments/assets/c1dbdcf3-3766-4e99-bdbe-a31ca90474f9" width="150">
+    <img src="https://github.com/user-attachments/assets/de3397d2-605a-4104-8a41-f1330a9425e2" width="150" />
+   <img src="https://github.com/user-attachments/assets/d60d7847-9f6b-4e77-9c04-5721358c3246" width="150" /> 
+   <img src= "https://github.com/user-attachments/assets/de88028a-d884-4042-8768-16c505a271f1" width="150">
+   <img src = "https://github.com/user-attachments/assets/a3e1a84e-b797-40aa-a8ad-de95fc3b6d93" width="150">
+   <img src = "https://github.com/user-attachments/assets/18f20bf2-9929-4844-b0f7-723c23d090ee" width=150"
+
+
+</p>
+
+
+
+
+
 
 ## Overview
 
-GlucoVision empowers diabetic users by:
+GlucoVision helps diabetic users by:
 
-- Logging blood glucose levels
+- tracking blood glucose levels
 - Visualizing health trends
-- Receiving AI-based predictions and insights
+- Receiving AI-based predictions and insights and with live agent that can assit you anytime.
 
 Built with a strong focus on usability, AI integration, and medical-grade reporting.
 
@@ -51,7 +67,7 @@ Built with a strong focus on usability, AI integration, and medical-grade report
 
 ---
 
-## 📅 App Structure
+##  App Structure
 
 ### Frontend (React Native)
 
@@ -71,7 +87,7 @@ Auth → Glucose Logs → AI Chat → Reports → Analytics
 
 ---
 
-## 🌐 API (Production)
+##  API (Production)
 
 - **Base URL**: `https://glucovision-production.up.railway.app`
 - **Docs**: `/docs`
@@ -86,7 +102,7 @@ Auth → Glucose Logs → AI Chat → Reports → Analytics
 
 ---
 
-## 🚀 Setup Guide
+##  Setup Guide
 
 ### Backend
 
@@ -96,6 +112,11 @@ cp .env.example .env  # then edit email & DB config
 pip install -r requirements.txt
 python run.py --host 0.0.0.0 --port 8000
 ```
+### Backend (No Setup Needed )
+
+The backend is already live and deployed at:https://glucovision-production.up.railway.app
+
+You do **not** need to run it locally
 
 ### Frontend
 
@@ -117,23 +138,5 @@ npm start
 
 ---
 
-## 🌟 Highlights
-
-- Clean, modular component structure
-- Fully typed with TypeScript (frontend + backend)
-- AI integration with OpenAI for personalized health insights
-- Mobile-first, secure, and production-ready
 
 ---
-
-## 🚧 Project Status
-
-- 📅 Core Features: ✅ Done
-- 🔍 AI Assistant: ✅ Integrated
-- 📈 Analytics & Reports: ✅ Live
-- 📲 Mobile UI: ✅ Polished
-- ♻️ Final Refinement: ⏳ In Progress
-
----
-
-Built with ❤️ for better diabetic health support and as a demonstration of professional-grade mobile, backend, and AI engineering.
