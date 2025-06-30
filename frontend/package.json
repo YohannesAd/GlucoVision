@@ -19,10 +19,12 @@
     "axios": "^1.9.0",
     "date-fns": "^4.1.0",
     "expo": "~53.0.9",
+    "expo-dev-client": "^5.2.2",
     "expo-file-system": "^18.1.10",
     "expo-print": "^14.1.4",
     "expo-sharing": "^13.1.5",
     "expo-status-bar": "~2.2.3",
+    "expo-updates": "~0.28.15",
     "react": "19.0.0",
     "react-hook-form": "^7.57.0",
     "react-native": "0.79.4",
@@ -35,8 +37,7 @@
     "react-native-svg": "15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "zod": "^3.25.49",
-    "zustand": "^5.0.5",
-    "expo-updates": "~0.28.15"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

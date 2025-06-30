@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yohannesja.glucovision",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,17 +31,17 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "owner": "glucovision-team",
     "extra": {
       "eas": {
-        "projectId": "c1db64c5-318e-4d0f-b5e5-39a8647a8a7f"
+        "projectId": "0da31f53-bb2b-4fe2-bed5-9df3e01feb3b"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/c1db64c5-318e-4d0f-b5e5-39a8647a8a7f"
-    },
-    "owner": "yohannesja"
+      "url": "https://u.expo.dev/0da31f53-bb2b-4fe2-bed5-9df3e01feb3b"
+    }
   }
 }
